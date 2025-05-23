@@ -1,0 +1,110 @@
+---
+title: "Stock-recruitment and reference points"
+authors:
+  - name: "Travis Brenden"
+  - name: "Chris Cahill"
+  - affiliation: "Quantitative Fisheries Center"
+format: pdf
+---
+
+**Date:** June 16–18, 2025  
+**Location:** Minnesota DNR’s office space in Canal Park, Duluth, Minnesota  
+**Time:** Class is from 9am–12pm and 1pm–5pm
+
+# Software 
+
+Students should come to the workshop with **R**, **RStudio**, and the **RTMB** package installed:
+
+- R: [https://cran.r-project.org](https://cran.r-project.org)
+- RStudio (free version): [https://posit.co/download/rstudio-desktop/](https://posit.co/download/rstudio-desktop/)
+
+To install the RTMB package, open R and run:
+
+```r
+install.packages("RTMB")
+```
+Once RTMB is installed, follow this link and run through the calculations to check that the installation was successful: 
+
+[https://cloud.r-project.org/web/packages/RTMB/vignettes/RTMB-introduction.html](https://cloud.r-project.org/web/packages/RTMB/vignettes/RTMB-introduction.html)
+
+If you run into issues, contact Charlie Belinsky.
+
+Lessons and code will be shared via a github repository, which will be made available during the workshop.
+
+# Day 1: recruitment foundations and model fitting
+
+## Morning session: biological and conceptual foundations
+
+- **Introductions and brief overview of the course**
+
+- **An extended introduction to recruitment including:**
+  - Basic life history and demographic processes that influence recruitment
+  - Conceptual models of density dependence (compensation, depensation)
+  - The rationale for modeling stock-recruitment relationships
+  - Problems in the assessment of stock-recruitment relationships
+
+## Afternoon session: fitting stock-recruitment models in R 
+
+- Lecture on additional stock-recruitment parameterizations
+- Simulating and fitting stock recruitment models in R 
+
+::: callout-note
+If time allows, we will demonstrate errors-in-variables and the impact it has on stock-recruitment parameter estimates 
+:::
+
+# Day 2: additional complexities, per-recruit calculations, and introduction to reference points
+
+## Morning session: recruitment complexities and per-recruit calculations  
+
+- **This session covers:**
+  - Autocorrelation and other complexities 
+  - Vulnerability, yield per recruit, spawning stock biomass per recruit
+  - More practice simulating and estimating models 
+  
+::: callout-note
+If time allows, we will estimate a hierarchical stock-recruitment model using RTMB
+:::
+
+## Afternoon session: 
+
+An extended introduction to biological reference points, including:
+
+- **History and rationale**
+  - Origins of MSY (maximum sustainable yield) 
+  - Evolution toward biological and proxy reference points
+  - Kobe plots and sustainability status
+  - Role of reference points in harvest control rules
+
+- **Types of reference points**
+  - Biological reference points: F<sub>MSY</sub>, B<sub>MSY</sub>
+  - Limit vs. target reference points (e.g., F<sub>limit</sub>, B<sub>trigger</sub>)
+  - Proxy reference points (e.g., F<sub>40%</sub>, SSB<sub>35%</sub>)
+
+- **Ways to estimate reference points**
+  - Equilibrium methods
+  - Simulation-based methods
+  
+::: callout-note
+If time allows, a group algebra exercise to derive equilibrium recruitment 
+:::
+  
+# Day 3: estimating reference points and harvest control rule design
+
+## Morning session:  
+
+- Estimating equilibrium and simulation-based  F<sub>MSY</sub>, B<sub>MSY</sub> in R
+  - Yellow perch example
+  - Whitefish example
+
+## Afternoon session: 
+
+- **Lecture on the science and art of feedback policy design**
+  - Dynamic programming and analytical solutions
+  - Approximation in policy space
+  - Management strategy evaluation and Monte Carlo simulation
+  - Reinforcement learning
+
+::: callout-note
+If time allows, a demonstration of estimating simple linear control rules using approximation in policy space
+:::
+
