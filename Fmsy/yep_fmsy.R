@@ -140,3 +140,15 @@ plot(F_seq, sbrf / sbro,
 abline(v = FX_vals, col = c("red", "blue", "purple"), lty = 2)
 legend("topright", legend = paste0("F", FX_targets * 100, "% sbrf / sbro"), 
        col = c("red", "blue", "purple"), lty = 2, bty = "n")
+
+#----------------------------------------------------
+# maximize yield subject to sbrf/sbro >= 0.55
+constrained_f <- function(logF) {
+  res <- f(logF)
+  if (res$sbrf / sbro < 0.45) return(Inf) # penalize if below threshold
+  return(res$neg_yield)
+}
+
+opt <- suppressWarnings(optimize(constrained_f, interval = log(c(1e-3, 5))))
+F_constrained <- exp(opt$minimum)
+F_constrained
