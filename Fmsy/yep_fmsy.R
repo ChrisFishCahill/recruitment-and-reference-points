@@ -120,32 +120,37 @@ cat("msy: ", round(-f(opt$minimum)$neg_yield, 3), "\n")
 cat("FX%:", round(FX, 3), "\n")
 
 #----------------------------------------------------
-# try a bunch of targets 
+# try a bunch of targets
 FX_targets <- c(0.2, 0.35, 0.4)
 FX_vals <- sapply(FX_targets, function(x) {
   exp(uniroot(function(logF) get_sbrf(logF) - x,
     lower = log(1e-5), upper = log(5)
   )$root)
 })
-par(mfrow=c(1,1))
 par(mfrow = c(1, 2))
 plot(F_seq, yield, type = "l", xlab = "F", ylab = "Equilibrium yield", lwd = 2)
 abline(v = FX_vals, col = c("red", "blue", "purple"), lty = 2)
-legend("topright", legend = paste0("F", FX_targets * 100, "% sbrf / sbro"), 
-       col = c("red", "blue", "purple"), lty = 2, bty = "n")
+legend("topright",
+  legend = paste0("F", FX_targets * 100, "% sbrf / sbro"),
+  col = c("red", "blue", "purple"), lty = 2, bty = "n"
+)
 plot(F_seq, sbrf / sbro,
-     type = "l", xlab = "F",
-     ylim = c(0.1, 1), ylab = "sbrf / sbro", lwd = 2
+  type = "l", xlab = "F",
+  ylim = c(0.1, 1), ylab = "sbrf / sbro", lwd = 2
 )
 abline(v = FX_vals, col = c("red", "blue", "purple"), lty = 2)
-legend("topright", legend = paste0("F", FX_targets * 100, "% sbrf / sbro"), 
-       col = c("red", "blue", "purple"), lty = 2, bty = "n")
+legend("topright",
+  legend = paste0("F", FX_targets * 100, "% sbrf / sbro"),
+  col = c("red", "blue", "purple"), lty = 2, bty = "n"
+)
 
 #----------------------------------------------------
-# maximize yield subject to sbrf/sbro >= 0.55
+# maximize yield subject to sbrf/sbro >= 0.65
 constrained_f <- function(logF) {
   res <- f(logF)
-  if (res$sbrf / sbro < 0.45) return(Inf) # penalize if below threshold
+  if (res$sbrf / sbro < 0.65) {
+    return(Inf)
+  } # penalize if below threshold
   return(res$neg_yield)
 }
 
