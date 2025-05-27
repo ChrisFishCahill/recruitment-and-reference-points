@@ -120,7 +120,7 @@ cat("msy: ", round(-f(opt$minimum)$neg_yield, 3), "\n")
 cat("FX%:", round(FX, 3), "\n")
 
 #----------------------------------------------------
-# try a bunch of targets for
+# try a bunch of targets 
 FX_targets <- c(0.2, 0.35, 0.4)
 FX_vals <- sapply(FX_targets, function(x) {
   exp(uniroot(function(logF) get_sbrf(logF) - x,
