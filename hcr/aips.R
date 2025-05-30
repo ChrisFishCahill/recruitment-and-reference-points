@@ -197,7 +197,7 @@ legend("bottomright", legend = c("Max yield", "HARA utility"),
        col = c("blue", "red"), pch = 16, bty = "n")
 
 #----------------------------
-# Some stuff worth discussing  
+# Some stuff to discuss  
 # Dynamic programming solutions from 1975-1990s show these general findings
 # Parama, Walters, Hilborn, more Walters, etc.
 # Gives you a means to manage a dynamic fishery via a feedback policy
