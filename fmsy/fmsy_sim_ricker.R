@@ -146,3 +146,6 @@ quantile(msy_vals, c(0.05, 0.5, 0.95))
 # Other things that could go wrong, and what might you do to address them?
 
 # Could you adapt this to work with steepness instead of recK?
+
+# Compare the answers you get here with the equilibrium values. What do you notice 
+# or see? 
