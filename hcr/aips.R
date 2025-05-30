@@ -66,12 +66,12 @@ get_upow(20, 50)
 # upow = 1 (max yield objective)
 # upow --> 0 stronger risk aversion and approximates log(catches)
 
-opt_yield <- optim(c(2, 0.05), get_yield_hcr,
+opt_yield <- optim(c(0, 0), get_yield_hcr,
   wt = wt, upow = 1 # max yield
 )
 
 # optimize for upow = 0.6 risk-averse (HARA utility)
-opt_hara <- optim(c(2, 0.05), get_yield_hcr,
+opt_hara <- optim(c(0, 0), get_yield_hcr,
                   wt = wt, upow = 0.6
 )
 
