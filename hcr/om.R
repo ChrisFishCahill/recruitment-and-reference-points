@@ -31,14 +31,14 @@ wt <- rnorm(n_years - 1, 0, sdr)
 f <- function(par) {
   getAll(data, par)
   Ft <- exp(logF)
-  
+
   log_n <- matrix(-Inf, n_years, length(mat))
   ssb <- yield <- vul_bio <- numeric(n_years)
-  
+
   log_n[1, ] <- log(ninit)
   ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
   vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
-  
+
   for (t in 2:n_years) {
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
@@ -48,10 +48,10 @@ f <- function(par) {
     log_n[t, n_ages] <- log(
       exp(log_n[t, n_ages]) + exp(log_n[t - 1, n_ages]) * exp(-Zt[n_ages])
     )
-    # modulate population abundance every 100 years or so 
+    # modulate population abundance every 100 years or so
     if (t %% 100 == 0) {
-      shock <- -10 
-      log_n[t, ] <- log_n[t, ] + shock  # modulate n by e^shock
+      shock <- -10
+      log_n[t, ] <- log_n[t, ] + shock # modulate n by e^shock
     }
     n <- exp(log_n[t, ])
     ssb[t] <- sum(n * mat * wa)
@@ -75,7 +75,8 @@ par <- list(logF = rep(log(0.5), n_years - 1))
 data$upow <- 1
 obj_yield <- MakeADFun(f, par, data = data)
 opt_yield <- nlminb(obj_yield$par, obj_yield$fn, obj_yield$gr,
-                    control = list(eval.max = 10000, iter.max = 10000))
+  control = list(eval.max = 10000, iter.max = 10000)
+)
 Ft_yield <- exp(opt_yield$par)
 rep_yield <- obj_yield$report()
 
@@ -83,7 +84,8 @@ rep_yield <- obj_yield$report()
 data$upow <- 0.6
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
-                   control = list(eval.max = 10000, iter.max = 10000))
+  control = list(eval.max = 10000, iter.max = 10000)
+)
 Ft_hara <- exp(opt_hara$par)
 rep_hara <- obj_hara$report()
 
@@ -95,45 +97,70 @@ keep <- 2:(n_years - 50)
 crash_F_indices <- crash_F_indices[crash_F_indices %in% (keep - 1)]
 
 vb_yield <- rep_yield$vul_bio[keep - 1]
-vb_hara  <- rep_hara$vul_bio[keep - 1]
-Ft_y     <- Ft_yield[keep - 1]
-Ft_h     <- Ft_hara[keep - 1]
+vb_hara <- rep_hara$vul_bio[keep - 1]
+Ft_y <- Ft_yield[keep - 1]
+Ft_h <- Ft_hara[keep - 1]
 highlight_idx <- which((keep - 1) %in% crash_F_indices)
 
 layout(matrix(1:4, 2, 2, byrow = TRUE))
 par(mar = c(4, 4.2, 2, 1))
 
 # Panel 1: Absolute scale, yield
-plot(vb_yield, Ft_y, pch = 19, col = "grey50", cex = 0.6,
-     xlab = "Vulnerable biomass", ylab = "Estimated Ft",
-     main = "Yield-maximizing (upow = 1)", ylim = c(0, 1.15),
-     xlim = c(0, vbo))
-points(vb_yield[highlight_idx], Ft_y[highlight_idx], pch = 4, col = "blue", lwd = 1.2)
+plot(vb_yield, Ft_y,
+  pch = 19, col = "grey50", cex = 0.6,
+  xlab = "Vulnerable biomass", ylab = "Estimated Ft",
+  main = "Yield-maximizing (upow = 1)", ylim = c(0, 1.15),
+  xlim = c(0, vbo)
+)
+points(vb_yield[highlight_idx], Ft_y[highlight_idx],
+  pch = 4,
+  col = "blue", lwd = 1.2
+)
 abline(v = vbo, col = "black", lty = 2)
-legend("topleft", legend = "Crash-year Ft", pch = 4, col = "blue", bty = "n")
+legend("topleft",
+  legend = "Crash-year Ft", pch = 4,
+  col = "blue", bty = "n"
+)
 
 # Panel 2: Absolute scale, HARA
-plot(vb_hara, Ft_h, pch = 19, col = "grey50", cex = 0.6,
-     xlab = "Vulnerable biomass", ylab = "Estimated Ft",
-     main = "Risk-averse (upow = 0.6)", ylim = c(0, 1.15),
-     xlim = c(0, vbo))
-points(vb_hara[highlight_idx], Ft_h[highlight_idx], pch = 4, col = "blue", lwd = 1.2)
+plot(vb_hara, Ft_h,
+  pch = 19, col = "grey50", cex = 0.6,
+  xlab = "Vulnerable biomass", ylab = "Estimated Ft",
+  main = "Risk-averse (upow = 0.6)", ylim = c(0, 1.15),
+  xlim = c(0, vbo)
+)
+points(vb_hara[highlight_idx], Ft_h[highlight_idx],
+  pch = 4,
+  col = "blue", lwd = 1.2
+)
 abline(v = vbo, col = "black", lty = 2)
-legend("topleft", legend = "Crash-year Ft", pch = 4, col = "blue", bty = "n")
+legend("topleft",
+  legend = "Crash-year Ft", pch = 4,
+  col = "blue", bty = "n"
+)
 
 # Panel 3: Relative scale, yield
-plot(vb_yield / vbo, Ft_y, pch = 19, col = "grey50", cex = 0.6,
-     xlab = "Relative vulnerable biomass", ylab = "Estimated Ft",
-     main = "Yield-maximizing (relative scale)", ylim = c(0, 1.15),
-     xlim = c(0, 1))
-points(vb_yield[highlight_idx] / vbo, Ft_y[highlight_idx], pch = 4, 
-       col = "blue", lwd = 1.2)
+plot(vb_yield / vbo, Ft_y,
+  pch = 19, col = "grey50", cex = 0.6,
+  xlab = "Relative vulnerable biomass", ylab = "Estimated Ft",
+  main = "Yield-maximizing (relative scale)", ylim = c(0, 1.15),
+  xlim = c(0, 1)
+)
+points(vb_yield[highlight_idx] / vbo, Ft_y[highlight_idx],
+  pch = 4,
+  col = "blue", lwd = 1.2
+)
 abline(v = 1, col = "black", lty = 2)
 
 # Panel 4: Relative scale, HARA
-plot(vb_hara / vbo, Ft_h, pch = 19, col = "grey50", cex = 0.6,
-     xlab = "Relative vulnerable biomass", ylab = "Estimated Ft",
-     main = "Risk-averse (relative scale)", ylim = c(0, 1.15),
-     xlim = c(0, 1))
-points(vb_hara[highlight_idx] / vbo, Ft_h[highlight_idx], pch = 4, col = "blue", lwd = 1.2)
+plot(vb_hara / vbo, Ft_h,
+  pch = 19, col = "grey50", cex = 0.6,
+  xlab = "Relative vulnerable biomass", ylab = "Estimated Ft",
+  main = "Risk-averse (relative scale)", ylim = c(0, 1.15),
+  xlim = c(0, 1)
+)
+points(vb_hara[highlight_idx] / vbo, Ft_h[highlight_idx],
+  pch = 4,
+  col = "blue", lwd = 1.2
+)
 abline(v = 1, col = "black", lty = 2)
