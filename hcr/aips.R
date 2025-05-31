@@ -1,4 +1,4 @@
-# smoother HCR RTMB version
+# HCR RTMB version
 library(RTMB)
 
 # life history inputs
@@ -116,6 +116,10 @@ lrp_h <- exp(opt_hara$par["log_lrp"])
 cslope_h <- exp(opt_hara$par["log_cslope"])
 
 # vb sequence
+vb_y <- rep_yield$vul_bio
+vb_h <- rep_hara$vul_bio
+Ft_y <- rep_yield$Ft
+Ft_h <- rep_hara$Ft
 vb_seq <- seq(0.001, max(c(vb_y, vb_h)) * 1.1, length.out = 300)
 
 # Fitted Ft curves
@@ -149,16 +153,15 @@ plot(vb_seq, TAC_h,
 abline(v = lrp_h, col = "red", lty = 3)
 
 # 3. Ft vs vb (yield)
-plot(vb_y, Ft_y,
+plot(vb_y[-n_years], Ft_y,
   pch = 16, col = "blue", cex = 0.4,
   xlab = "Vulnerable biomass", ylab = "Fishing mortality Ft",
   main = "Max yield (upow = 1)"
 )
-lines(vb_seq, Ft_y_fit, col = "black", lwd = 2)
 abline(v = lrp_y, col = "blue", lty = 3)
 
 # 4. Ft vs vb (HARA)
-plot(vb_h, Ft_h,
+plot(vb_h[-n_years], Ft_h,
   pch = 16, col = "red", cex = 0.4,
   xlab = "Vulnerable biomass", ylab = "Fishing mortality Ft",
   ylim = c(0, max(Ft_y, Ft_h)),
@@ -258,4 +261,3 @@ legend("topleft",
 # Which policy is more sustainable?
 # Could you do this with more complex objective functions? yes, but likely requires
 # simulation (like MSE) or something similar, also...
-# A point about overcapitalization and the so-called precautionary approach
