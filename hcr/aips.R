@@ -64,7 +64,7 @@ get_upow <- function(certainty, high, low = 0, p = 0.5) {
 get_upow(20, 50)
 
 # upow = 1 (max yield objective)
-# upow --> 0 stronger risk aversion and approximates log(catches)
+# upow --> 0 stronger risk aversion 
 
 opt_yield <- optim(c(0, 0), get_yield_hcr,
   wt = wt, upow = 1 # max yield
@@ -191,9 +191,9 @@ legend("bottomright", legend = c("Max yield", "HARA utility"),
 par(mfrow=c(1,1))
 plot(dyn_yield$vul_bio[-1], dyn_yield$F[-1], col = "blue", pch = 16,
      xlab = "Vulnerable biomass", ylab = "Fishing mortality (F)",
-     main = "Mortality rate vs. biomass", cex = 0.8)
+     main = "Mortality rate vs. biomass", xlim = c(0, 2.0), cex = 0.8)
 points(dyn_hara$vul_bio[-1], dyn_hara$F[-1], col = "red", pch = 16, cex = 0.8)
-legend("bottomright", legend = c("Max yield", "HARA utility"),
+legend("topleft", legend = c("Max yield", "HARA utility"),
        col = c("blue", "red"), pch = 16, bty = "n")
 
 #----------------------------
@@ -202,5 +202,6 @@ legend("bottomright", legend = c("Max yield", "HARA utility"),
 # Parama, Walters, Hilborn, more Walters, etc.
 # Gives you a means to manage a dynamic fishery via a feedback policy
 # Which policy is more sustainable? 
-# Could you do this with more complex objective functions? yes, but...
+# Could you do this with more complex objective functions? yes, but likely requires
+# simulation (like MSE) or something similar, also...
 # A point about overcapitalization and the so-called precautionary approach
