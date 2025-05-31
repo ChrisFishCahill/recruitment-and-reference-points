@@ -164,3 +164,12 @@ points(vb_hara[highlight_idx] / vbo, Ft_h[highlight_idx],
   col = "blue", lwd = 1.2
 )
 abline(v = 1, col = "black", lty = 2)
+
+# Things worth thinking about
+# What do you see, and what do you think is going on? 
+# What are the points to the far right? What is the OM trying to do? 
+# How do these patterns change with more recruitment variability? 
+# Pros and cons of an HCR or OM vs. a basic Fmsy policy? 
+# What are some ways you could extend this? How does it differ from close-loop
+# management strategy evaluation or dynamic programming solutions to the 
+# feedback policy design problem? 
