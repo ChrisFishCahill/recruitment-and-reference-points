@@ -1,4 +1,3 @@
-# HCR RTMB version
 library(RTMB)
 
 # life history inputs
@@ -45,7 +44,7 @@ f <- function(par) {
   for (t in 2:n_years) {
     log_vb <- log(vul_bio[t - 1])
     delta_log <- log_vb - log(lrp)
-    Ft[t - 1] <- cslope * plogis(10 * delta_log) * (1 - exp(-delta_log))
+    Ft[t - 1] <- cslope * plogis(50 * delta_log) * (1 - exp(-delta_log))
 
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
@@ -56,7 +55,8 @@ f <- function(par) {
       exp(log_n[t, n_ages]) + exp(log_n[t - 1, n_ages]) * exp(-Zt[n_ages])
     )
     if (t %% 100 == 0) {
-      log_n[t, ] <- log_n[t, ] - 10
+      shock <- -10
+      log_n[t, ] <- log_n[t, ] + shock # add shock of e^shock to all ages
     }
     n <- exp(log_n[t, ])
     ssb[t] <- sum(n * mat * wa)
@@ -167,7 +167,6 @@ plot(vb_h[-n_years], Ft_h,
   ylim = c(0, max(Ft_y, Ft_h)),
   main = "HARA utility (upow = 0.6)"
 )
-lines(vb_seq, Ft_h_fit, col = "black", lwd = 2)
 abline(v = lrp_h, col = "red", lty = 3)
 
 # ----- plot showing why Ft is nonlinear from linear TAC -----
@@ -252,6 +251,15 @@ legend("topleft",
   legend = c("Max yield", "HARA utility"),
   col = c("blue", "red"), lwd = 2, lty = c(1, 2), bty = "n"
 )
+
+# mean yield under yield-maximizing rule
+mean_yield_yield <- mean(rep_yield$yield)
+
+# mean yield under HARA utility
+mean_yield_hara <- mean(rep_hara$yield)
+
+cat("Mean yield (yield-maximizing):", mean_yield_yield, "\n")
+cat("Mean yield (HARA utility):", mean_yield_hara, "\n")
 
 #----------------------------
 # Some stuff to discuss
