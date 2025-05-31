@@ -80,6 +80,14 @@ opt_yield <- nlminb(obj_yield$par, obj_yield$fn, obj_yield$gr,
 Ft_yield <- exp(opt_yield$par)
 rep_yield <- obj_yield$report()
 
+# doone <- function() {
+#   nlminb(obj_yield$par + rnorm(length(obj_yield$par),
+#     sd = 0.1
+#   ), obj_yield$fn, obj_yield$gr)$par
+# }
+# jit <- replicate(100, doone())
+# boxplot(t(jit))
+
 # HARA (risk-averse)
 data$upow <- 0.6
 obj_hara <- MakeADFun(f, par, data = data)
