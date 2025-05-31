@@ -27,7 +27,7 @@ sdr <- 0.05 # LOOK HERE
 set.seed(1)
 wt <- rnorm(n_years - 1, 0, sdr)
 
-# objective function (unchanged)
+# objective function 
 f <- function(par) {
   getAll(data, par)
   Ft <- exp(logF)
