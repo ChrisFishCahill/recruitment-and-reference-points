@@ -21,7 +21,7 @@ plot(lo ~ ages, type = "b", ylab = "survivorship", xlab = "age")
 
 # set recruitment parameters
 Ro <- 10 # unfished recruitment
-recK <- 5 # maximum recruits per spawner
+recK <- 5 # Goodyear compensation ratio
 sbro <- sum(lo * mat * wa) # spawning biomass per recruit
 ln_alpha <- log(recK / sbro) # log alpha
 br <- (ln_alpha + log(sbro)) / (Ro * sbro) # ricker beta
@@ -32,16 +32,16 @@ f <- function(logF) {
   F <- exp(logF)
   n_ages <- length(mat)
   Z <- F * vul + M
-  log_n <- numeric(n_ages)
-  log_n[1] <- log(1) # initialize
+  log_lx <- numeric(n_ages)
+  log_lx[1] <- log(1) # initialize
   for (a in 2:n_ages) {
-    log_n[a] <- log_n[a - 1] - Z[a - 1]
+    log_lx[a] <- log_lx[a - 1] - Z[a - 1]
   }
-  log_n[n_ages] <- log_n[n_ages] - log(1 - exp(-Z[n_ages]))
-  sbrf <- sum(exp(log_n) * mat * wa)
+  log_lx[n_ages] <- log_lx[n_ages] - log(1 - exp(-Z[n_ages]))
+  sbrf <- sum(exp(log_lx) * mat * wa)
   Req <- (ln_alpha + log(sbrf)) / (br * sbrf)
   # equilibrium yield
-  YPR <- sum(wa * vul * F / Z * exp(log_n) * (1 - exp(-Z)))
+  YPR <- sum(wa * vul * F / Z * exp(log_lx) * (1 - exp(-Z)))
   Yeq <- YPR * Req
   return(list(neg_yield = -Yeq, sbrf = sbrf, Req = Req))
 }
