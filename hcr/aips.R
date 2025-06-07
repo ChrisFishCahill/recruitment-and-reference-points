@@ -42,8 +42,10 @@ f <- function(par) {
   vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
   
   for (t in 2:n_years) {
-    log_vb <- log(vul_bio[t - 1])
+    log_vb <- log(vul_bio[t - 1]) 
     delta_log <- log_vb - log(lrp)
+    # https://en.wikipedia.org/wiki/Softplus Softplus approximation to a 
+    # non-differentiable function 
     Ft[t - 1] <- cslope * plogis(50 * delta_log) * (1 - exp(-delta_log))
     
     Zt <- Ft[t - 1] * vul + M

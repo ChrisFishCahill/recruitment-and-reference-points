@@ -1,0 +1,447 @@
+---
+subtitle: Strategic requirements for sustainable fisheries  
+author: Christopher L. Cahill <br> Associate Director
+date: 17 june 2025
+---
+
+## Expectations
+
+-   Be kind
+-   Make an honest effort to learn 
+-   Share code
+    -   I share my code with all of you, so please do the same
+-   This course lies at the intersection of many fields
+    -   Failure is okay and to be expected
+
+## Some disclaimers
+
+1.  Reference points are a vast and difficult topic 💀
+2.  This is not a mathematical statistics, coding, or assessment modeling course course
+3.  Please ask questions
+4.  I don't know everything, but will do my best to track down answers
+5.  When in doubt, see points 1-4
+
+
+## Objectives
+
+1.  To explore how scientists have understood and measured fishing pressure over time
+
+2.  To learn the origins and meaning of reference points
+
+3.  Practice per-recruit and and equilibrium calculations for age-structured fish populations
+
+4.  Practice equilibrium reference point calculation for age-structured fish populations
+
+<br>
+<br>
+
+![](images/grim.png){.absolute bottom=3% right=0 width=30%}
+
+## {.background background-image="images/msc.jpg" background-size="contain"}
+
+[see also Hilborn et al. 2015]{.footerRight}
+
+
+## Goals and objectives of harvest management
+
+::: {style="font-size:29px"}
+
+- Management strategies for exploited fish stocks depend on goals and objectives to be achieved 
+  - Few like to explicitly do this 
+- Conservation concern (in the sense of 'wise-use') suggests that a long-term perspective is necessary, although short term objectives often require attention because of pressure from stakeholders
+- In this chunk of the class, we apply recruitment models developed in the first half of the class and extend them to age-structured setting to estimate reference points and feedback policies
+:::
+
+[Quinn and Deriso Chapter 11]{.footerRight}
+
+## Equilibrium population concepts
+
+::: {style="font-size:29px"}
+
+- Under average conditions, a fish population produces surplus production each year which can be taken as equilibrium yield Y* each year without changing the population's size or biomass (B)
+
+- The relationship between Y* and B is typically domed: 
+
+```{r, fig.width=10.5, fig.height=4.25}
+# biomass and parameters
+B <- seq(0.001, 1, length.out = 200)
+r <- 1.0
+K <- 1.0
+
+# yield and exploitation rate
+Y_star <- r * B * (1 - B / K)
+U <- Y_star / B
+
+# MSY reference values
+Bmsy <- K / 2
+Umsy <- r / 2
+Ymsy <- r * K / 4
+
+# 1 row, 2 columns
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+# left: yield vs biomass
+plot(B, Y_star, type = "l", lwd = 2,
+     xlab = "Biomass (B)", ylab = "Equilibrium Yield (Y*)",
+     main = "Yield vs Biomass", ylim = c(0, max(Y_star) * 1.2))
+abline(v = Bmsy, lty = 2)
+abline(h = Ymsy, lty = 2)
+points(Bmsy, Ymsy, pch = 16, col = "darkorchid2")
+text(Bmsy + 0.08, Ymsy * 1.01, "MSY", pos = 3, col = "black")
+points(Bmsy, 0, pch = 16, col = "darkorchid2")
+text(Bmsy + 0.08, 0.02, "Bmsy", pos = 1, col = "black")
+
+# right: exploitation rate vs biomass
+plot(B, U, type = "l", lwd = 2,
+     xlab = "Biomass (B)", ylab = "Exploitation rate (U)",
+     main = "Exploitation vs Biomass", ylim = c(0, max(U)))
+abline(h = Umsy, lty = 3)
+abline(v = Bmsy, lty = 2)
+points(Bmsy, Umsy, pch = 16, col = "darkorchid2")
+points(Bmsy, 0, pch = 16, col = "darkorchid2")
+text(Bmsy + 0.08, 0.07, "Bmsy", pos = 1, col = "black")
+
+text(Bmsy + 0.08, Umsy * 1.05, "Umsy", pos = 3, col = "black")
+```
+
+- Note $Y^* = U \cdot B$
+:::
+
+[Schaefer 1954; Beverton and Holt 1957]{.footerRight}
+
+## Equilibrium population concepts
+
+::: {style="font-size:29px"}
+
+- This is a Schaefer or logistic population model: 
+
+$$
+Y^* = r B \left(1 - \frac{B}{K} \right)
+$$
+- $Y^*$ is equilibrium yield, r is the intrinsic population growth rate, K is carrying capacity, B is biomass
+
+- Purple points represent analytical (mathematical) solutions to the Schaefer model
+
+$$
+B_{\text{MSY}} = \frac{K}{2}, \quad U_{\text{MSY}} = \frac{r}{2}, \quad Y_{\text{MSY}} = \frac{rK}{4}
+$$
+
+- Why the hump? 
+
+- The Good, the Bad, and the Ugly 
+:::
+
+[Schaefer 1954; Beverton and Holt 1957; Hilborn et al. 1995]{.footerRight}
+
+## Historical overview of managing fishing mortality: 1950s-1960s 
+
+::: {style="font-size:29px"}
+
+- Surplus production models and approaches to setting quotas were state of the art owing in large part to the mathematical tractability of these models
+- Used as a way to reduce acrimonious debate in management meetings as it is very clear that we don't want to be to the left side of the hump on the yield vs. biomass plot (which indicates overfishing)
+- A number of theoretical developments happened during this time, and it was noted that harvesting a fixed quota year after year were liable to produce catastrophic and depensatory collapses, while constant fishing rate policies were less likely to result in these issues
+- It was suggested that policies might need to be dynamic, or reduce fishing as stock size declined
+
+[Schaefer 1954; Beverton and Holt 1957; Ricker 1963; Walters and Martell 2004]{.footerRight}
+
+:::
+
+## Historical overview of managing fishing mortality: 1970s-1980s 
+
+::: {style="font-size:25px"}
+
+- The golden era of harvesting theory, driven by widespread development and use of computers
+  - Feedback policy design and the optimality of policies
+  - Adaptive management (not just learning by doing but *true* AM)
+  - The role of stochasticity and recruitment variation 
+  - Effects of age structure
+- Dynamic programming showed that for simple models, optimal management for yield was not a constant quota every year, but rather a *feedback policy* modulating mortality rate as population size changes
+  - Difficult to implement, but very powerful. Like analytical methods, DP provides a *solution* rather than an *approximation*
+  - However, the 'big-n' problem limited applicability to many ecological settings
+- Approximation in policy space and other optimization methods proved very powerful for more complicated models, but require explicit objectives
+  - These methods search for good policies that achieve some a priori objectives 
+
+[Walters 1975; Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992; Williams et al. 2002]{.footerRight}
+
+:::
+
+## Enduring themes from the Golden Era of harvesting theory: maximizing yield 
+
+::: {style="font-size:27px"}
+- The optimal yield policy is often a feedback policy of the following form: 
+
+```{r, fig.width=6.5, fig.height=4.9, fig.align='center'}
+# define stock size and lower escapement (steeper slope)
+stock <- seq(0, 500, length.out = 200)
+escapement <- 125  # LRP, lower value = steeper slope
+
+# calculate TAC: stock - escapement, but not < 0
+tac <- pmax(stock - escapement, 0)
+
+# plot
+plot(stock, tac, type = "l", lwd = 2,
+     xlab = "Stock size", ylab = "Total allowable catch TAC",
+     ylim = c(0, max(tac)), yaxs = "i", xaxs = "i")
+
+# add LRP line and label
+abline(v = escapement, col = "darkorchid2", lty = 2, lwd = 2)
+points(escapement, 5, pch = 19, cex = 2, col = "darkorchid2") # just for visualization, actually at zero
+text(escapement - 0.05*escapement, 0.08 * max(tac), "Lower limit \nreference point", pos = 2, col = "black")
+
+```
+
+[This is also called a 'fixed escapement' or 'bang-bang' policy; Walters 1975]{.footerRight}
+ 
+:::
+
+## Enduring themes from the Golden Era of harvesting theory: risk-averse utility
+
+::: {style="font-size:27px"}
+- The optimal policy that maintains consistency in catch rates over time is the following: 
+
+```{r, fig.width=6.5, fig.height=4.9, fig.align='center'}
+# define stock size and policy slope
+stock <- seq(0, 500, length.out = 200)
+slope <- 0.25  # shallow slope
+
+# calculate TAC: linear policy from origin
+tac <- slope * stock
+
+# plot
+plot(stock, tac, type = "l", lwd = 2, color = "darkorchid2",
+     xlab = "Stock size", ylab = "Total allowable catch TAC",
+     ylim = c(0, 300), yaxs = "i", xaxs = "i")
+points(3, 3, pch = 19, cex = 2, col = "darkorchid2") 
+abline(v = 3, col = "darkorchid2", lty = 2, lwd = 2)
+```
+ 
+[This is a type of 'fixed' or 'constant' F policy; Walters and Parma 1996]{.footerRight}
+:::
+
+## Reference point run down
+
+::: {style="font-size:26px"}
+
+- In their purest form, reference points are different aspects of a model (like the surplus production model we solved for MSY, Fmsy, and Bmsy) or emergent properties of dynamic programming or other analytical or numerical solutions (i.e., lower limit reference points)
+- Benchmark values used to guide sustainable management 
+- They depend on the model (surplus production MSY is not the same as age-structured model MSY)
+- They depend on method (age-structured equilibrium Fmsy is not the same as age-structured simulation based Fmsy)
+- Biological reference points, which are those linked specifically to the mathematics of a model, are determinable by an analyst in an objective way
+  - All others require value judgements, risk thresholds, or policy preferences, which by definition make them subjective 
+- Feedback policies can maximize yield or risk-averse utility (or anything else)
+- Equilibrium and simulation based reference points are much simpler to compute than feedback policies
+
+:::
+
+[Hilborn and Walters 1992; Walters and Martell 2004]{.footerRight}
+
+## Historical overview of managing fishing mortality: 1990s-present
+
+::: {style="font-size:28px"}
+
+- A number of notable fisheries declines and collapses (e.g., Atlantic cod) led to widespread shifts in federal legislation such as updates to the Magnuson-Stevens Act (1996, 2006), Canada's Precautionary Approach, and the ICES Precautionary Approach in Europe
+- This legislation often advocates the 'precautionary-approach' to fisheries management, which among other things often specifies a specific harvest control rule form (i.e., feedback policy)
+- Modern variations on simple feedback policies can be quite complex relationships between fishing rate and stock size, and are used by many agencies to define targets and reference points for management
+- Examples of these types of policies in Great Lakes or your specific systems? 
+
+[Restrepo and Powers 1999; Lassen et al. 2012; Walters and Martell 2004]{.footerRight}
+
+:::
+
+## {.background background-image="images/dfo.png" background-size="contain"}
+
+[DFO Precautionary HCR; DFO 2009]{.footerRight}
+
+## Communicating status: Kobe plots
+
+::: {style="font-size:28px"}
+- First joint meeting of the tuna regional fisheries management organization, held in Kobe, Japan
+- Ray Hilborn noted that stock status and assessment results could be categorized with a four quadrant plot relating current mortality rates and biomass estimates to reference points 
+- The point: reference points are useful for conveying stock status and are now used worldwide as a standard tool
+
+[Maunder and Aires-da-Silva 2011]{.footerRight}
+:::
+
+## Communicating sustainability status: Kobe plots
+
+```{r, fig.width=6.5, fig.height=4.9, fig.align='center'}
+# define plot space
+plot(NA, xlim = c(0, 2), ylim = c(0, 2),
+     xlab = "Stock biomass / Bmsy",
+     ylab = "Fishing mortality / Fmsy",
+     yaxs = "i", xaxs = "i", bty = "n")
+
+# draw quadrant boundaries
+abline(h = 1, lty = 2)  # F = Fmsy
+abline(v = 1, lty = 2)  # B = Bmsy
+
+# shade quadrants lightly with hatching or grayscale rectangles (optional)
+# omit for pure B/W line version
+
+# add example point in upper-right (overfished & overfishing)
+points(1.2, 1.3, pch = 19, cex = 2)
+
+# add quadrant labels
+text(0.5, 0.5, "Overfished,\nnot overfishing", cex = 0.9)
+text(1.5, 0.5, "Not overfished,\nNot overfishing", cex = 0.9)
+text(0.5, 1.5, "Overfished,\noverfishing", cex = 0.9)
+text(1.5, 1.5, "Not overfished,\noverfishing", cex = 0.9)
+```
+
+[Maunder and Aires-da-Silva 2011]{.footerRight}
+
+## Communicating sustainability status: Kobe plots
+::: {style="font-size:28px"}
+
+- Evolving status through time 
+
+```{r, fig.width=6.5, fig.height=4.9, fig.align='center'}
+# define years
+years <- 2005:2012
+n <- length(years)
+
+# manually define a trajectory that circles all quadrants
+b_ratio <- c(1.5, 1.6, 1.4, 1.1, 0.9, 0.7, 0.8, 0.9)
+f_ratio <- c(0.8, 1.1, 1.4, 1.5, 1.3, 1.1, 0.8, 0.6)
+
+# set up blank plot
+plot(NA, xlim = c(0, 2), ylim = c(0, 2),
+     xlab = "Stock biomass / Bmsy",
+     ylab = "Fishing mortality / Fmsy",
+     yaxs = "i", xaxs = "i", bty = "n")
+
+# quadrant boundaries
+abline(h = 1, lty = 2)
+abline(v = 1, lty = 2)
+
+# plot time series with lines and points
+points(b_ratio, f_ratio, type = "o", pch = 16)
+
+# label years slightly offset
+text(b_ratio + 0.03, f_ratio + 0.05, labels = years, cex = 0.7)
+
+# quadrant labels
+text(0.4, 0.4, "Overfished,\nnot overfishing", cex = 0.85)
+text(1.6, 0.4, "Not overfished,\nnot overfishing", cex = 0.85)
+text(0.4, 1.6, "Overfished,\noverfishing", cex = 0.85)
+text(1.6, 1.6, "Not overfished,\noverfishing", cex = 0.85)
+
+```
+
+[Maunder and Aires-da-Silva 2011]{.footerRight}
+:::
+
+## Relevance to inland fisheries?
+
+[Cahill et al. 2022]{.footerRight}
+
+
+## Relevance to inland fisheries? 
+
+![](images/unveiling.png){fig-align="center" width="750" height="550"}
+
+[Cahill et al. 2022]{.footerRight}
+
+## Summary
+
+- Sustainability assessments are complex, but best practices require the determination of one or more reference points
+- Feedback policies difficult to compute but very powerful and provide much of the theoretical ba 
+
+
+## Survivorship in the unfished condition
+
+::: {style="font-size:29px"}
+
+$$
+\mathrm{lo}_a =
+\left\{
+\begin{aligned}
+  &1                               && \text{if } a = 1 \\
+  &\mathrm{lo}_{a-1} \cdot e^{-M}  && \text{if } 2 \leq a < a_{\max} \\
+  &\dfrac{\mathrm{lo}_{a_{\max}-1}}{1 - e^{-M}} && \text{if } a = a_{\max}
+\end{aligned}
+\right.
+$$
+
+- M is instantaneous natural mortality
+
+- lo is survivorship at age vector in the unfished condition
+
+- In R: 
+
+:::
+
+```{R echo = T, eval = F}
+# calculate survivorship in unfished state
+M <- 0.2
+n_ages <- 20 # plus group at 20
+ages <- 1:n_ages
+lo <- numeric(n_ages)
+lo[1] <- 1
+for (i in 2:n_ages) lo[i] <- lo[i - 1] * exp(-M)
+lo[n_ages] <- lo[n_ages - 1] / (1 - exp(-M)) # plus group
+```
+
+## Plus group
+
+::: {style="font-size:31px"}
+
+For the plus group, we sum all untracked survivors:
+
+$$
+\mathrm{lo}_{a_{\max}} = \sum_{j=1}^\infty \mathrm{lo}_{a_{\max}-1} \cdot (e^{-M})^j
+$$
+
+This is a geometric series with:
+
+$$
+\sum_{j=1}^\infty r^j = \frac{r}{1 - r}, \quad \text{where } r = e^{-M}
+$$
+
+So:
+
+$$
+\mathrm{lo}_{a_{\max}} = \mathrm{lo}_{a_{\max}-1} \cdot \frac{e^{-M}}{1 - e^{-M}} = \frac{\mathrm{lo}_{a_{\max}-1}}{1 - e^{-M}}
+$$
+
+:::
+
+## Spawner biomass per recruit in the unfished condition (sbro)
+
+$$
+\mathrm{sbro} = \sum_{a=1}^{a_{max}} \mathrm{lo}_a \cdot \mathrm{m}_a \cdot \mathrm{w}_a
+$$
+
+[for more information see Walters and Martell 2004 box 3.1]{.footerRight}
+
+
+## References
+
+::: {style="font-size:25px"}
+
+- Beverton and Holt 1957. On the dynamics of exploited fish populations. 
+- DFO Precautionary Approach. 2009.  [https://www.dfo-mpo.gc.ca/reports-rapports/regs/sff-cpd/precaution-eng.htm](https://www.dfo-mpo.gc.ca/reports-rapports/regs/sff-cpd/precaution-eng.htm)
+- Hilborn et al. 1995. Sustainable exploitation of renewable resources. Annual Review of Ecology and Systematics, Vol. 26, pp. 45-67
+- Hilborn et al. 2015. When is a fishery sustainable? CJFAS.
+- Lassen et al. 2012. ICES Advisory Framework 1977-2012: From MSY to precautionary approach and back. ICES Journal of Marine Science.
+- Maunder and Aires-da-Silva 2011. Evaluation of the Kobe plot and strategy matrix and their applicaiton to Tuna in the Eastern Pacific Ocean. Inter-American Tropical Tuna Commission Scientific Advisory Meeting. 
+-   Myers 2002. Recruitment: understanding density-dependence in fish populations.
+-   Quinn and Deriso 1999. Quantitative Fisheries Dynamics.  Chapter 11.
+-   Restrepo and Powers 1999. Precautionary control rules in US fisheries management:
+specification and performance. ICES Journal of Marine Science. 
+-   Ricker 1963. Big effects from small causes: Two examples from fish population dynamics. Journal of the Fisheries Research Board of Canada, 20, 257-264. 
+:::
+
+## References
+
+::: {style="font-size:25px"}
+
+-   Schaefer 1954. Some aspects of the dvnamics of populations important to the management of the commercial marine fisheries. Inter.-Am. Trop. Tuna Comm. Bull. 1:25 - 56 
+- Walters 1975. Optimal harvest strategies for salmon in relation to environmental variability and uncertainty about production parameters. J. Fish. Res. Board Can. 
+- Walters and Hilborn 1976. Adaptive Control of fishing systems. J. Fish. Res. Board Can.
+- Walters and Hilborn 1978. Ecological optimization and adaptive management. Annual Review of Ecology and Systematics.
+- Walters and Parma 1996. Fixed exploitation rate strategies for coping with effects of climate change. Canadian Journal of Fisheries and Aquatic Sciences.
+-   Walters and Martell 2004. Fisheries Ecology and Management.
+- Williams et al. 2002. Analysis and management of animal populations.
+
+:::
