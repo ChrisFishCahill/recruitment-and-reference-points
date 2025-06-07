@@ -358,7 +358,7 @@ text(1.6, 1.6, "Not overfished,\noverfishing", cex = 0.85)
 - Mathematical foundations and the ecological basis of sustainable harvesting
 - Calculating equilibrium Fmsy/MSY for an age-structured model
 - Calculating simulation based Fmsy/MSY for an age-structured model
-- The omniscient fishery manager and risk-averse utility
+- The omniscient fishery manager and maximizing yield vs. risk-averse utility
 - Approximation of feedback in policy space
 
 :::
