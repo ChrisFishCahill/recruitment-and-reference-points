@@ -96,7 +96,7 @@ plot(obj_yield$report()$`Ft` ~ obj_yield$report()$`vul_bio`[-1])
 
 # fit HARA utility rule
 data$upow <- 0.6
-par <- list(log_csl = log(1), log_bhalf = log(1), log_fmax = log(0.1))
+par <- list(log_csl = log(1), log_bhalf = log(1), log_fmax = log(1))
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
   control = list(eval.max = 10000, iter.max = 10000)
