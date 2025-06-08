@@ -35,7 +35,7 @@ f <- function(par) {
 
   log_n <- matrix(-Inf, n_years, n_ages)
   ssb <- yield <- vul_bio <- numeric(n_years)
-  Ft <- numeric(n_years - 1)
+  Ft <- Ut <- numeric(n_years - 1)
 
   log_n[1, ] <- log(ninit)
   ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
@@ -47,7 +47,8 @@ f <- function(par) {
     # https://en.wikipedia.org/wiki/Softplus Softplus approximation to a
     # non-differentiable function
     beta <- 100
-    Ft[t - 1] <- 1 / beta * log(1 + exp(beta * cslope * (exp(log_vb) - lrp))) / exp(log_vb)
+    Ut <- 1 / beta * log(1 + exp(beta * cslope * (exp(log_vb) - lrp))) / exp(log_vb)
+    Ft[t - 1] <- -log(1 - Ut)
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
     for (a in 2:n_ages) {
