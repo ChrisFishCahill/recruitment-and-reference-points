@@ -93,14 +93,20 @@ jit <- replicate(100, doone())
 boxplot(t(jit))
 
 # fit HARA utility rule
-data$upow <- 0.6
-par$log_cslope <- log(0.4)
-par$log_lrp <- log(1e-10)
+par <- list(log_csl = log(0.2), log_bhalf = log(5), log_fmax = log(0.8))
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
                    control = list(eval.max = 10000, iter.max = 10000)
 )
 rep_hara <- obj_hara$report()
+
+doone <- function() {
+  nlminb(obj_hara$par + rnorm(length(obj_hara$par),
+                               sd = 0.1
+  ), obj_hara$fn, obj_hara$gr)$par
+}
+jit <- replicate(100, doone())
+boxplot(t(jit))
 
 # extract fitted parameters
 lrp_y <- exp(opt_yield$par["log_lrp"])
