@@ -1,447 +1,506 @@
 ---
-subtitle: Strategic requirements for sustainable fisheries  
+subtitle: Equilibrium reference point math
 author: Christopher L. Cahill <br> Associate Director
-date: 17 june 2025
 ---
-
-## Expectations
-
--   Be kind
--   Make an honest effort to learn 
--   Share code
-    -   I share my code with all of you, so please do the same
--   This course lies at the intersection of many fields
-    -   Failure is okay and to be expected
-
-## Some disclaimers
-
-1.  Reference points are a vast and difficult topic 💀
-2.  This is not a mathematical statistics, coding, or assessment modeling course course
-3.  Please ask questions
-4.  I don't know everything, but will do my best to track down answers
-5.  When in doubt, see points 1-4
-
 
 ## Objectives
 
-1.  To explore how scientists have understood and measured fishing pressure over time
+::: {style="font-size:29px"}
+1.  Understand how density dependence shapes population growth and identify the biological meaning of MSY, Bmsy, and Umsy for logistic population models (pen and paper)
+2.  Introduce common age-structured fish population model equations
+3.  Practice per-recruit and and equilibrium calculations for age-structured fish populations (R)
+4.  Practice equilibrium reference point calculation for age-structured fish populations (R)
+:::
 
-2.  To learn the origins and meaning of reference points
+##  {.background background-image="images/grim3.jpg" background-size="83%"}
 
-3.  Practice per-recruit and and equilibrium calculations for age-structured fish populations
+[*The Knight* and *Death* in The Seventh Seal by Ingmar Bergman]{.footerLeft}
 
-4.  Practice equilibrium reference point calculation for age-structured fish populations
+## Logistic population growth
+
+::: {style="font-size:29px"}
+$$
+\frac{dB}{dt} = r B \left(1 - \frac{B}{K} \right)
+$$
+
+-   r is the intrinsic population growth rate, K is carrying capacity, B is biomass
+
+-   Who here is good at math
+:::
+
+## Logistic population growth
+
+::: {style="font-size:29px"}
+$$
+\frac{dB}{dt} = r B \left(1 - \frac{B}{K} \right)
+$$
+
+-   r is the intrinsic population growth rate, K is carrying capacity, B is biomass
+
+-   Who here is good at math
+
+-   Groups of three
+:::
+
+## Logistic population growth
+
+::: {style="font-size:29px"}
+$$
+\frac{dB}{dt} = r B \left(1 - \frac{B}{K} \right)
+$$
+
+-   r is the intrinsic population growth rate, K is carrying capacity, B is biomass
+
+-   Who here is good at math
+
+-   Groups of three
+
+-   Do the math to calculate biomass at maximum sustainable yield (Bmsy), maximum sustainable yield (MSY), and exploitation rate at maximum sustainable yield (Umsy)
+:::
+
+## Logistic population growth: hints
+
+::: {style="font-size:29px"}
+```{R echo = T, eval = T, fig.width=6.5, fig.height=4.25}
+r <- 0.5
+K <- 100
+B <- 0:K # pick a range of B
+dBdt <- r * B * (1 - B / K) # simulate dymamics
+plot(B, dBdt,
+  type = "l", lwd = 2,
+  xlab = "Biomass (B)",
+  ylab = "Growth rate (dB/dt)"
+)
+```
+:::
+
+## Logistic population growth: hints
+
+::: {style="font-size:29px"}
+-   You need to add in a yield term (call it Y) to the equation and rearrange it
+-   Differentiate Y with respect to B
+-   Set the solution equal to zero and solve it (find the root)
+-   Use your solution to calculate MSY and Umsy
 
 <br>
+
+-   **Bonus**. What happens if you repeat this exercise for the model:
+
+$$
+\frac{dB}{dt} = r B 
+$$
+:::
+
+##  {.background background-image="images/grim2.jpg" background-size="83%"}
+
+[*Death* from The Seventh Seal by Ingmar Bergman]{.footerLeft}
+
+## Why on earth are we doing this?
+
+::: {style="font-size:28px"}
+1.  Analytic solution is the best solution if it exists
+
+2.  Biological reference points are not arbitrary, but rather emerge from biology of the system in question (or at least the models representing those systems)
+
+3.  More complicated models have yield vs. biomass curves that skew left or right (develop intuition)
+
+    -   Whales (often) skew right, fish (often) skew left
+
+4.  Density dependence (i.e., compensation) as ***the*** ecological basis for sustainable harvesting
+
+5.  Dependence of reference points on difference aspects of ecology
+
+    -   Bmsy vs. Umsy
+
+6.  Many critiques of MSY use this caricature of MSY
+
+    -   What are the problems of this approach, and does it have any value in modern fisheries management?
+
+[see also Larkin et al. 1977; Hilborn et al. 1995; 2015]{.footerRight}
+:::
+
+## Adding complexity: age-structure
+
+::: {style="text-align: center;"}
+<img src="images/design.png" width="700" height="550"/>
+:::
+
+[Paloheimo's 'design effects' in catch at age data; Alberta Walleye]{.footerRight}
+
+## Age-structure
+
+::: {style="font-size:29px"}
+-   Many of the ecological processes affecting fish are size dependent
+-   Maturity and variable reproductive output
+-   Somatic growth
+-   Mortality
+-   Vulnerability
+
 <br>
 
-![](images/grim.png){.absolute bottom=3% right=0 width=30%}
+-   Where does density dependence enter a typical age-structured fish population dynamics model?
 
-## {.background background-image="images/msc.jpg" background-size="contain"}
+[see methods in e.g., Hilborn and Walters 1992; Quinn and Deriso 1999]{.footerRight}
+:::
 
-[see also Hilborn et al. 2015]{.footerRight}
-
-
-## Goals and objectives of harvest management
+## Age-structure
 
 ::: {style="font-size:29px"}
+-   Many of the ecological processes affecting fish are size dependent
+-   Maturity and variable reproductive output
+-   Somatic growth
+-   Mortality
+-   Vulnerability
 
-- Management strategies for exploited fish stocks depend on goals and objectives to be achieved 
-  - Few like to explicitly do this 
-- Conservation concern (in the sense of 'wise-use') suggests that a long-term perspective is necessary, although short term objectives often require attention because of pressure from stakeholders
-- In this chunk of the class, we apply recruitment models developed in the first half of the class and extend them to age-structured setting to estimate reference points and feedback policies
+<br>
+
+-   Where does density dependence enter a typical age-structured fish population dynamics model?
+-   Why? [see methods in e.g., Hilborn and Walters 1992; Quinn and Deriso 1999]{.footerRight}
 :::
 
-[Quinn and Deriso Chapter 11]{.footerRight}
-
-## Equilibrium population concepts
+## Equilibrium calculations in age-structured models 
 
 ::: {style="font-size:29px"}
-
-- Under average conditions, a fish population produces surplus production each year which can be taken as equilibrium yield Y* each year without changing the population's size or biomass (B)
-
-- The relationship between Y* and B is typically domed: 
-
-```{r, fig.width=10.5, fig.height=4.25}
-# biomass and parameters
-B <- seq(0.001, 1, length.out = 200)
-r <- 1.0
-K <- 1.0
-
-# yield and exploitation rate
-Y_star <- r * B * (1 - B / K)
-U <- Y_star / B
-
-# MSY reference values
-Bmsy <- K / 2
-Umsy <- r / 2
-Ymsy <- r * K / 4
-
-# 1 row, 2 columns
-par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-
-# left: yield vs biomass
-plot(B, Y_star, type = "l", lwd = 2,
-     xlab = "Biomass (B)", ylab = "Equilibrium Yield (Y*)",
-     main = "Yield vs Biomass", ylim = c(0, max(Y_star) * 1.2))
-abline(v = Bmsy, lty = 2)
-abline(h = Ymsy, lty = 2)
-points(Bmsy, Ymsy, pch = 16, col = "darkorchid2")
-text(Bmsy + 0.08, Ymsy * 1.01, "MSY", pos = 3, col = "black")
-points(Bmsy, 0, pch = 16, col = "darkorchid2")
-text(Bmsy + 0.08, 0.02, "Bmsy", pos = 1, col = "black")
-
-# right: exploitation rate vs biomass
-plot(B, U, type = "l", lwd = 2,
-     xlab = "Biomass (B)", ylab = "Exploitation rate (U)",
-     main = "Exploitation vs Biomass", ylim = c(0, max(U)))
-abline(h = Umsy, lty = 3)
-abline(v = Bmsy, lty = 2)
-points(Bmsy, Umsy, pch = 16, col = "darkorchid2")
-points(Bmsy, 0, pch = 16, col = "darkorchid2")
-text(Bmsy + 0.08, 0.07, "Bmsy", pos = 1, col = "black")
-
-text(Bmsy + 0.08, Umsy * 1.05, "Umsy", pos = 3, col = "black")
-```
-
-- Note $Y^* = U \cdot B$
+-   Botsford and Wickham (1979) and Botsford (1981a, 1981b) developed a clever way to do many of the important equilibrium calculations needed for an age-structured analysis of fish population responses to harvesting
+-   Approach integrates 'per-recruit' methods with stock-recruitment
+-   Involves using survivorship-to-age-calculations in conjunction with age schedules of size, vulnerability, and fecundity to calculate equilibrium "incidence functions"
+-   Each incidence function represents a sum over ages of some quantity like fecundity, weighted by survivorship
+    -   Recognize survivorship is the net probability of surviving to some age
 :::
 
-[Schaefer 1954; Beverton and Holt 1957]{.footerRight}
+[Walters and Martell 2004 box 3.1]{.footerRight}
 
-## Equilibrium population concepts
-
-::: {style="font-size:29px"}
-
-- This is a Schaefer or logistic population model: 
-
-$$
-Y^* = r B \left(1 - \frac{B}{K} \right)
-$$
-- $Y^*$ is equilibrium yield, r is the intrinsic population growth rate, K is carrying capacity, B is biomass
-
-- Purple points represent analytical (mathematical) solutions to the Schaefer model
-
-$$
-B_{\text{MSY}} = \frac{K}{2}, \quad U_{\text{MSY}} = \frac{r}{2}, \quad Y_{\text{MSY}} = \frac{rK}{4}
-$$
-
-- Why the hump? 
-
-- The Good, the Bad, and the Ugly 
-:::
-
-[Schaefer 1954; Beverton and Holt 1957; Hilborn et al. 1995]{.footerRight}
-
-## Historical overview of managing fishing mortality: 1950s-1960s 
-
-::: {style="font-size:29px"}
-
-- Surplus production models and approaches to setting quotas were state of the art owing in large part to the mathematical tractability of these models
-- Used as a way to reduce acrimonious debate in management meetings as it is very clear that we don't want to be to the left side of the hump on the yield vs. biomass plot (which indicates overfishing)
-- A number of theoretical developments happened during this time, and it was noted that harvesting a fixed quota year after year were liable to produce catastrophic and depensatory collapses, while constant fishing rate policies were less likely to result in these issues
-- It was suggested that policies might need to be dynamic, or reduce fishing as stock size declined
-
-[Schaefer 1954; Beverton and Holt 1957; Ricker 1963; Walters and Martell 2004]{.footerRight}
-
-:::
-
-## Historical overview of managing fishing mortality: 1970s-1980s 
-
-::: {style="font-size:25px"}
-
-- The golden era of harvesting theory, driven by widespread development and use of computers
-  - Feedback policy design and the optimality of policies
-  - Adaptive management (not just learning by doing but *true* AM)
-  - The role of stochasticity and recruitment variation 
-  - Effects of age structure
-- Dynamic programming showed that for simple models, optimal management for yield was not a constant quota every year, but rather a *feedback policy* modulating mortality rate as population size changes
-  - Difficult to implement, but very powerful. Like analytical methods, DP provides a *solution* rather than an *approximation*
-  - However, the 'big-n' problem limited applicability to many ecological settings
-- Approximation in policy space and other optimization methods proved very powerful for more complicated models, but require explicit objectives
-  - These methods search for good policies that achieve some a priori objectives 
-
-[Walters 1975; Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992; Williams et al. 2002]{.footerRight}
-
-:::
-
-## Enduring themes from the Golden Era of harvesting theory: maximizing yield 
-
-::: {style="font-size:27px"}
-- The optimal yield policy is often a feedback policy of the following form: 
-
-```{r, fig.width=6.5, fig.height=4.9, fig.align='center'}
-# define stock size and lower escapement (steeper slope)
-stock <- seq(0, 500, length.out = 200)
-escapement <- 125  # LRP, lower value = steeper slope
-
-# calculate TAC: stock - escapement, but not < 0
-tac <- pmax(stock - escapement, 0)
-
-# plot
-plot(stock, tac, type = "l", lwd = 2,
-     xlab = "Stock size", ylab = "Total allowable catch TAC",
-     ylim = c(0, max(tac)), yaxs = "i", xaxs = "i")
-
-# add LRP line and label
-abline(v = escapement, col = "darkorchid2", lty = 2, lwd = 2)
-points(escapement, 5, pch = 19, cex = 2, col = "darkorchid2") # just for visualization, actually at zero
-text(escapement - 0.05*escapement, 0.08 * max(tac), "Lower limit \nreference point", pos = 2, col = "black")
-
-```
-
-[This is also called a 'fixed escapement' or 'bang-bang' policy; Walters 1975]{.footerRight}
- 
-:::
-
-## Enduring themes from the Golden Era of harvesting theory: risk-averse utility
-
-::: {style="font-size:27px"}
-- The optimal policy that maintains consistency in catch rates over time is the following: 
-
-```{r, fig.width=6.5, fig.height=4.9, fig.align='center'}
-# define stock size and policy slope
-stock <- seq(0, 500, length.out = 200)
-slope <- 0.25  # shallow slope
-
-# calculate TAC: linear policy from origin
-tac <- slope * stock
-
-# plot
-plot(stock, tac, type = "l", lwd = 2, color = "darkorchid2",
-     xlab = "Stock size", ylab = "Total allowable catch TAC",
-     ylim = c(0, 300), yaxs = "i", xaxs = "i")
-points(3, 3, pch = 19, cex = 2, col = "darkorchid2") 
-abline(v = 3, col = "darkorchid2", lty = 2, lwd = 2)
-```
- 
-[This is a type of 'fixed' or 'constant' F policy; Walters and Parma 1996]{.footerRight}
-:::
-
-## Reference point run down
+## Survivorship in the fished condition
 
 ::: {style="font-size:26px"}
-
-- In their purest form, reference points are different aspects of a model (like the surplus production model we solved for MSY, Fmsy, and Bmsy) or emergent properties of dynamic programming or other analytical or numerical solutions (i.e., lower limit reference points)
-- Benchmark values used to guide sustainable management 
-- They depend on the model (surplus production MSY is not the same as age-structured model MSY)
-- They depend on method (age-structured equilibrium Fmsy is not the same as age-structured simulation based Fmsy)
-- Biological reference points, which are those linked specifically to the mathematics of a model, are determinable by an analyst in an objective way
-  - All others require value judgements, risk thresholds, or policy preferences, which by definition make them subjective 
-- Feedback policies can maximize yield or risk-averse utility (or anything else)
-- Equilibrium and simulation based reference points are much simpler to compute than feedback policies
-
-:::
-
-[Hilborn and Walters 1992; Walters and Martell 2004]{.footerRight}
-
-## Historical overview of managing fishing mortality: 1990s-present
-
-::: {style="font-size:28px"}
-
-- A number of notable fisheries declines and collapses (e.g., Atlantic cod) led to widespread shifts in federal legislation such as updates to the Magnuson-Stevens Act (1996, 2006), Canada's Precautionary Approach, and the ICES Precautionary Approach in Europe
-- This legislation often advocates the 'precautionary-approach' to fisheries management, which among other things often specifies a specific harvest control rule form (i.e., feedback policy)
-- Modern variations on simple feedback policies can be quite complex relationships between fishing rate and stock size, and are used by many agencies to define targets and reference points for management
-- Examples of these types of policies in Great Lakes or your specific systems? 
-
-[Restrepo and Powers 1999; Lassen et al. 2012; Walters and Martell 2004]{.footerRight}
-
-:::
-
-## {.background background-image="images/dfo.png" background-size="contain"}
-
-[DFO Precautionary HCR; DFO 2009]{.footerRight}
-
-## Communicating status: Kobe plots
-
-::: {style="font-size:28px"}
-- First joint meeting of the tuna regional fisheries management organization, held in Kobe, Japan
-- Ray Hilborn noted that stock status and assessment results could be categorized with a four quadrant plot relating current mortality rates and biomass estimates to reference points 
-- The point: reference points are useful for conveying stock status and are now used worldwide as a standard tool
-
-[Maunder and Aires-da-Silva 2011]{.footerRight}
-:::
-
-## Communicating sustainability status: Kobe plots
-
-```{r, fig.width=6.5, fig.height=4.9, fig.align='center'}
-# define plot space
-plot(NA, xlim = c(0, 2), ylim = c(0, 2),
-     xlab = "Stock biomass / Bmsy",
-     ylab = "Fishing mortality / Fmsy",
-     yaxs = "i", xaxs = "i", bty = "n")
-
-# draw quadrant boundaries
-abline(h = 1, lty = 2)  # F = Fmsy
-abline(v = 1, lty = 2)  # B = Bmsy
-
-# shade quadrants lightly with hatching or grayscale rectangles (optional)
-# omit for pure B/W line version
-
-# add example point in upper-right (overfished & overfishing)
-points(1.2, 1.3, pch = 19, cex = 2)
-
-# add quadrant labels
-text(0.5, 0.5, "Overfished,\nnot overfishing", cex = 0.9)
-text(1.5, 0.5, "Not overfished,\nNot overfishing", cex = 0.9)
-text(0.5, 1.5, "Overfished,\noverfishing", cex = 0.9)
-text(1.5, 1.5, "Not overfished,\noverfishing", cex = 0.9)
-```
-
-[Maunder and Aires-da-Silva 2011]{.footerRight}
-
-## Communicating sustainability status: Kobe plots
-::: {style="font-size:28px"}
-
-- Evolving status through time 
-
-```{r, fig.width=6.5, fig.height=4.9, fig.align='center'}
-# define years
-years <- 2005:2012
-n <- length(years)
-
-# manually define a trajectory that circles all quadrants
-b_ratio <- c(1.5, 1.6, 1.4, 1.1, 0.9, 0.7, 0.8, 0.9)
-f_ratio <- c(0.8, 1.1, 1.4, 1.5, 1.3, 1.1, 0.8, 0.6)
-
-# set up blank plot
-plot(NA, xlim = c(0, 2), ylim = c(0, 2),
-     xlab = "Stock biomass / Bmsy",
-     ylab = "Fishing mortality / Fmsy",
-     yaxs = "i", xaxs = "i", bty = "n")
-
-# quadrant boundaries
-abline(h = 1, lty = 2)
-abline(v = 1, lty = 2)
-
-# plot time series with lines and points
-points(b_ratio, f_ratio, type = "o", pch = 16)
-
-# label years slightly offset
-text(b_ratio + 0.03, f_ratio + 0.05, labels = years, cex = 0.7)
-
-# quadrant labels
-text(0.4, 0.4, "Overfished,\nnot overfishing", cex = 0.85)
-text(1.6, 0.4, "Not overfished,\nnot overfishing", cex = 0.85)
-text(0.4, 1.6, "Overfished,\noverfishing", cex = 0.85)
-text(1.6, 1.6, "Not overfished,\noverfishing", cex = 0.85)
-
-```
-
-[Maunder and Aires-da-Silva 2011]{.footerRight}
-:::
-
-## Relevance to inland fisheries?
-
-[Cahill et al. 2022]{.footerRight}
-
-
-## Relevance to inland fisheries? 
-
-![](images/unveiling.png){fig-align="center" width="750" height="550"}
-
-[Cahill et al. 2022]{.footerRight}
-
-## Summary
-
-- Sustainability assessments are complex, but best practices require the determination of one or more reference points
-- Feedback policies difficult to compute but very powerful and provide much of the theoretical ba 
-
-
-## Survivorship in the unfished condition
-
-::: {style="font-size:29px"}
+-   The following recursion captures the cumulative effect of fishing and natural mortality on animals as they age:
 
 $$
-\mathrm{lo}_a =
+\mathrm{lx}_a =
 \left\{
 \begin{aligned}
-  &1                               && \text{if } a = 1 \\
-  &\mathrm{lo}_{a-1} \cdot e^{-M}  && \text{if } 2 \leq a < a_{\max} \\
-  &\dfrac{\mathrm{lo}_{a_{\max}-1}}{1 - e^{-M}} && \text{if } a = a_{\max}
+  &1 & \text{if } a = 1 \\\\
+  &\mathrm{lx}_{a-1} \cdot e^{-Z_{a-1}} & \text{if } 2 \leq a < a_{\max} \\\\
+  &\dfrac{\mathrm{lx}_{a_{\max}-1} \cdot e^{-Z_{a_{\max}-1}}}{1 - e^{-Z_{a_{\max}}}} & \text{if } a = a_{\max}
 \end{aligned}
 \right.
 $$
 
-- M is instantaneous natural mortality
+where:
 
-- lo is survivorship at age vector in the unfished condition
+$$
+Z_{a} = F\cdot \mathrm{vul}_{a} + M
+$$
 
-- In R: 
+-   F and M are instantaneous fishing and natural mortality
+-   Z is total instantaneous mortality
+-   $\mathrm{vul}_{a}$ is the vulnerability of an individual of age a to fishing
 
+[Walters and Martell 2004 box 3.1]{.footerRight}
 :::
 
-```{R echo = T, eval = F}
-# calculate survivorship in unfished state
-M <- 0.2
-n_ages <- 20 # plus group at 20
-ages <- 1:n_ages
-lo <- numeric(n_ages)
-lo[1] <- 1
-for (i in 2:n_ages) lo[i] <- lo[i - 1] * exp(-M)
-lo[n_ages] <- lo[n_ages - 1] / (1 - exp(-M)) # plus group
-```
-
-## Plus group
+## Plus group misery 😭
 
 ::: {style="font-size:31px"}
-
 For the plus group, we sum all untracked survivors:
 
 $$
-\mathrm{lo}_{a_{\max}} = \sum_{j=1}^\infty \mathrm{lo}_{a_{\max}-1} \cdot (e^{-M})^j
+\mathrm{lx}_{a_{\max}} = \sum_{j=1}^\infty \mathrm{lx}_{a_{\max}-1} \cdot e^{-Z_{a_{\max}-1}} \cdot \left(e^{-Z_{a_{\max}}}\right)^{j-1}
 $$
 
 This is a geometric series with:
 
 $$
-\sum_{j=1}^\infty r^j = \frac{r}{1 - r}, \quad \text{where } r = e^{-M}
+\sum_{j=0}^\infty r^j = \frac{1}{1 - r}, \quad \text{where } r = e^{-Z_{a_{\max}}}
 $$
 
 So:
 
 $$
-\mathrm{lo}_{a_{\max}} = \mathrm{lo}_{a_{\max}-1} \cdot \frac{e^{-M}}{1 - e^{-M}} = \frac{\mathrm{lo}_{a_{\max}-1}}{1 - e^{-M}}
+\mathrm{lx}_{a_{\max}} = \mathrm{lx}_{a_{\max}-1} \cdot e^{-Z_{a_{\max}-1}} \cdot \frac{1}{1 - e^{-Z_{a_{\max}}}} = \frac{\mathrm{lx}_{a_{\max}-1} \cdot e^{-Z_{a_{\max}-1}}}{1 - e^{-Z_{a_{\max}}}}
 $$
+
+[Myers 2002]{.footerRight}
+:::
+
+## Survivorship in the fished condition cont'd
+
+::: {style="font-size:27px"}
+-   A population at equilibrium with R recruits at age-1 should have $R\cdot lx_{a=2}$ age two year olds, and $R\cdot lx_{a=3}$ three year olds, etc.
+
+-   The annual egg production of the population at that fished equilibrium is then
+
+$$
+\mathrm{ef} = \mathrm{R} \cdot \sum_{a=1}^{a_{max}} \mathrm{lx}_a \cdot \mathrm{f}_{a}
+$$
+
+-   where $\mathrm{f}_{a}$ is average fecundity at age
+
+-   Incidence function approach allows us to write important quantities, e.g., spawner biomass per recruit in the fished condition (sbrf):
+
+$$
+\mathrm{sbrf} = \sum_{a=1}^{a_{max}} \mathrm{lx}_a \cdot \mathrm{w}_{a} \cdot\mathrm{mat}_{a}
+$$
+
+-   Which is the average amount of spawner biomass that one recruit produces over its lifetime given this survivorship schedule, where $\mathrm{w}_{a}$ and $\mathrm{mat}_{a}$ are weight and proportion mature at age
+
+[Walters and Martell 2004 box 3.1]{.footerRight}
+:::
+
+## sbrf exercise
+
+::: {style="font-size:28px"}
+-   Calculate spawner biomass per recruit in the fished condition (sbrf)
+-   Assume a plus group
+
+```{R echo = T, eval = T}
+# life history vectors
+vul <- c(0.05, 0.174, 0.571, 0.899, 1.000, 0.6) # vulnerability at age
+wa <- c(0.05, 0.104, 0.145, 0.186, 0.212, 0.253) # weight at age
+mat <- c(0.05, 0.20, 0.82, 0.99, 1.00, 1.00) # maturity at age
+M <- 0.4 # instantaneous natural mortality
+F <- 0.1 # instantaneous fishing mortality
+```
+
+```{R echo = F, eval = T, fig.width=12, fig.height=4}
+# life history vectors
+vul <- c(0.05, 0.174, 0.571, 0.899, 1.000, 0.6) # vulnerability at age
+wa <- c(0.05, 0.104, 0.145, 0.186, 0.212, 0.253) # weight at age
+mat <- c(0.05, 0.20, 0.82, 0.99, 1.00, 1.00) # maturity at age
+M <- 0.4 # instantaneous natural mortality
+F <- 0.1 # instantaneous fishing mortality
+
+par(mfrow = c(1, 3))
+plot(vul, xlab = "age", type = "b", ylab = "vulnerability", col = "dodgerblue3",
+     cex.lab = 1.75, pch = 16, lwd = 1.5)
+plot(wa, xlab = "age", type = "b", ylab = "weight (kg)",  col = "dodgerblue3",
+     cex.lab = 1.75, pch = 16, lwd = 1.5)
+plot(mat, xlab = "age", type = "b", ylab = "proportion mature",  col = "dodgerblue3",
+     cex.lab = 1.75, pch = 16, lwd = 1.5)
+
+n_ages <- length(mat) # number of age classes
+ages <- 1:n_ages
+# set up total instantaneous mortality at age Za vector
+Za <- F * vul + M
+# calculate survivorship in the fished state
+lx <- numeric(n_ages)
+lx[1] <- 1 # initialize
+for (i in 2:n_ages) lx[i] <- lx[i - 1] * exp(-Za[i - 1]) # calculate lx recursively
+lx[n_ages] <- lx[n_ages - 1] / (1 - exp(-Za[n_ages])) # plus group correction
+sbrf <- sum(lx*mat*wa) # sumproduct lx, mat, wa
+cat("My sbrf solution =", sbrf, "\n")
+
+```
+:::
+
+## [The power of Botsford incidence functions]{style="font-size:80%"}
+
+::: {style="font-size:28px"}
+-   If we distinguish between survivorship in the fished $\mathrm{lx}_a$ and unfished $\mathrm{lo}_a$ condition, a blank canvas awaits
+
+$$
+\mathrm{sbrf} = \sum_{a=1}^{a_{max}} \mathrm{lx}_a \cdot \mathrm{w}_{a} \cdot\mathrm{mat}_{a}
+$$
+
+vs.
+
+$$
+\mathrm{sbro} = \sum_{a=1}^{a_{max}} \mathrm{lo}_a \cdot \mathrm{w}_{a} \cdot\mathrm{mat}_{a}
+$$
+
+-   Can you use this logic to calculate vulnerable biomass per recruit in the fished and unfished condition (i.e., vbrf, vbro)?
+
+-   What about vulnerable biomass in the fished and unfished condition (i.e., vbf, vbo)?
+
+-   Recognize that in the literature these get different symbols i.e., $\mathrm{ef}$ vs. $\phi_e$
+
+[Walters and Martell 2004 box 3.1]{.footerRight}
+:::
+
+## [Botsford's most useful trick]{style="font-size:80%"}
+
+::: {style="font-size:28px"}
+-   At any fished equilibrium, we can write the amount of spawner biomass generated on average as a function of the life history vectors weighted by the probability of surviving to each of those ages (i.e., as a function of F)
+
+$$
+\mathrm{S = R \cdot sbrf}
+$$
+
+-   Allows us to re-write the Beverton-Holt and Ricker stock recruitment curves in terms of equilibrium recruitment given some fully vulnerable F
+
+$$
+\mathrm{R=\frac{\alpha S}{1+\beta S} \quad \text { where } \quad S=R \cdot \operatorname{sbrf} \Rightarrow \quad R=\frac{\alpha \cdot R \cdot \text { sbrf }}{1+\beta \cdot R \cdot \text { sbrf }}}
+$$
+
+-   And solving for equilibrium R:
+
+$$
+\mathrm{R=\frac{\alpha \cdot \mathrm{sbrf} - 1}{\beta \cdot \mathrm{sbrf}}}.
+$$
+:::
+
+## [Botsford's trickery with Beverton-Holt]{style="font-size:80%"} 😈🤓🤢
+
+::: {style="font-size:26px"}
+-   Parameterizing stock-recruitment in terms of Ro and recK
+
+-   Consider a population at unfished equilibrium $$
+    \mathrm{So = Ro \cdot sbro}
+    $$
+
+-   So and Ro are spawner biomass and recruitment at unfished equilibrium, so recruits per spawner in the unfished state is
+
+$$
+\text{recK} = \frac{\text{recruits per spawner biomass at low density}}{\text{recruits per spawner biomass at unfished density}} \\
+\alpha \quad \text{is defined as recruits per spawner biomass at low density} \\
+\frac{R_0}{S_0} = \frac{1}{\text{sbro}} 
+\quad \text{(recruits per spawner biomass at unfished density)} \\
+\Rightarrow \quad
+\alpha = \frac{\text{recK}}{\text{sbro}}
+$$ [Myers and Barrowman 1999; 2002]{.footerRight}
+:::
+
+## [Botsford's trickery with Beverton-Holt 😈🤓🤢]{style="font-size:80%"}
+
+::: {style="font-size:26px"}
+-   Calculating $\beta$ from Ro, sbro, and recK:
+
+$$
+\mathrm{R=\frac{\alpha S}{1+\beta S} \quad \text { where } \quad So = Ro \cdot \operatorname{sbro} \Rightarrow \quad Ro=\frac{\alpha \cdot Ro \cdot \text { sbro }}{1+\beta \cdot Ro \cdot \text { sbro }}}
+$$
+
+-   And solving for $\beta$:
+
+$$
+\mathrm{\beta=\frac{\alpha \cdot \mathrm{sbro} - 1}{Ro \cdot \mathrm{sbro}}}.
+$$
+:::
+
+## Exercise: equilibrium recruitment
+
+::: {style="font-size:28px"}
+-   Calculate equilibrium recruitment across a range of F values from low to high, plot R vs. F and R vs. S
+
+```{r echo = T}
+# life history vectors
+vul <- c(0.05, 0.174, 0.571, 0.899, 1.000, 0.6) # vulnerability at age
+wa <- c(0.05, 0.104, 0.145, 0.186, 0.212, 0.253) # weight at age
+mat <- c(0.05, 0.20, 0.82, 0.99, 1.00, 1.00) # maturity at age
+M <- 0.4 # instantaneous natural mortality
+recK <- 5 # goodyear compensation ratio
+Ro <- 10 # equilibrium unfished recruitment
+
+n_ages <- length(mat) # number of age classes
+ages <- 1:n_ages
+# set up total instantaneous mortality at age Za vector
+Za <- F * vul + M # F set to some arbitrary value (e.g., 0.1)
+# calculate survivorship in the fished state
+lx <- numeric(n_ages)
+lx[1] <- 1 # initialize
+for (i in 2:n_ages) lx[i] <- lx[i - 1] * exp(-Za[i - 1]) # calculate lx recursively
+lx[n_ages] <- lx[n_ages - 1] / (1 - exp(-Za[n_ages])) # plus group correction
+sbrf <- sum(lx * mat * wa)
+
+# calculate survivorship in unfished state (i.e., F = 0)
+lo <- numeric(n_ages)
+lo[1] <- 1
+for (i in 2:n_ages) lo[i] <- lo[i - 1] * exp(-M)
+lo[n_ages] <- lo[n_ages - 1] / (1 - exp(-M)) # plus group
+sbro <- sum(lo * mat * wa)
+```
+:::
+
+##  {.background background-image="images/knight.jpg" background-size="90%"}
+
+[Suffering Knight from The Seventh Seal by Ingmar Bergman]{.footerLeft}
+
+## One more equation: yield per recruit
+
+::: {style="font-size:28px"}
+-   Recall that at equilibrium
+
+$$
+\mathrm{S = R \cdot sbrf}
+$$
+
+-   Equilibrium yield (Y) can be defined as a function of fully vulnerable instantaneous fishing mortality (F):
+
+$$
+Y(F) = R(F) \cdot \text{YPR}(F)
+$$
+
+-   Where R(F) is recruitment as a function of fishing mortality and yield per recruit (YPR) is specified as
+
+$$
+\operatorname{YPR}(F)= \mathrm{\sum_{a=1}^{a_{\max}} \frac{w_{a} \cdot vul_{a} \cdot F}{Z_{a}} \cdot \text{lx}_{a} \cdot\left(1-e^{-Z_{a}}\right)}
+$$
+
+-   Do people want to try and calculate equilibrium yield as a function of F? 🤔
+
+[Beverton and Holt 1957; Walters 1986]{.footerLeft}
+:::
+
+## [Equilibrium $F_{MSY}$ and $MSY$ calculations in age-structured fisheries models]{style="font-size:80%"}
+
+::: {style="font-size:26px"}
+
+-   May help to think of it as a multi-step procedure:
+
+$$
+ \begin{array}{c}\text{Estimate} \\\text{stock-recruitment &} \\\text{life history}  \\\text{parameters}  \end{array}  \Rightarrow  \begin{array}{c}\text{Compute} \\\text{equilibrium} \\\text{recruitment} \\R^*(F)  \end{array}  \Rightarrow  \begin{array}{c}\text{Calculate} \\\text{equilibrium} \\\text{yield} \\Y^*(F)  \end{array}  \Rightarrow  \begin{array}{c}\text{Solve for } F \text{ that} \\ \text{ maximizes } Y^*(F)  \end{array} 
+$$
+
+- Find the F that maximizes Y:
+
+$$
+F_{\text{MSY}} = F = \arg \max _{F} Y(F)
+$$
+
+- How might we solve this? 
+
+[see methods Walters and Martell box 3.1]{.footerRight}
+:::
+
+## Proxy reference points
+
+::: {style="font-size:29px"}
+
+-   In the absence of stock recruitment, sometimes a fraction of So (i.e., 0.3-0.4So) is used as a proxy for MSY 
+-   Depends on risk tolerance and biology 
+-   What do you think? 
 
 :::
 
-## Spawner biomass per recruit in the unfished condition (sbro)
+## Key caveats and known failure points
 
-$$
-\mathrm{sbro} = \sum_{a=1}^{a_{max}} \mathrm{lo}_a \cdot \mathrm{m}_a \cdot \mathrm{w}_a
-$$
+::: {style="font-size:29px"}
 
-[for more information see Walters and Martell 2004 box 3.1]{.footerRight}
+-  Dome shaped vulnerability
+-  Interaction of vulnerability and maturity schedule
+-  High values of Fmsy
+  - The can arise, but you want to know why this is happening
+-  Ricker vs. Beverton-Holt
+- Bias correcting parameters: if you bias correct something and then plug it into another equation...
+- Still an equilibrium answer!
 
+:::
+
+##  {.background background-image="images/danse.jpg" background-size="81%"}
+
+[*Danse macabre* from The Seventh Seal by Ingmar Bergman]{.footerLeft}
 
 ## References
 
 ::: {style="font-size:25px"}
-
-- Beverton and Holt 1957. On the dynamics of exploited fish populations. 
-- DFO Precautionary Approach. 2009.  [https://www.dfo-mpo.gc.ca/reports-rapports/regs/sff-cpd/precaution-eng.htm](https://www.dfo-mpo.gc.ca/reports-rapports/regs/sff-cpd/precaution-eng.htm)
-- Hilborn et al. 1995. Sustainable exploitation of renewable resources. Annual Review of Ecology and Systematics, Vol. 26, pp. 45-67
-- Hilborn et al. 2015. When is a fishery sustainable? CJFAS.
-- Lassen et al. 2012. ICES Advisory Framework 1977-2012: From MSY to precautionary approach and back. ICES Journal of Marine Science.
-- Maunder and Aires-da-Silva 2011. Evaluation of the Kobe plot and strategy matrix and their applicaiton to Tuna in the Eastern Pacific Ocean. Inter-American Tropical Tuna Commission Scientific Advisory Meeting. 
+-   Beverton and Holt 1957. On the dynamics of exploited fish populations.
+-   Botsford and Wickham 1979. Popuation cycles caused by inter-age, density-dependent mortality in young fish and crustaceans. In: *Cyclic phenomena in marine plants and animals*.
+-   Botsford 1981a. Optimal fishery policy for size-specific density-dependent population models. Journal of Mathematical Biology.
+-   Botsford 1981b. The effects of increased individual growth rates on depressed population size. American Naturalist.
+-   Hilborn and Walters 1992. Quantitative fisheries stock assessment: choice, dynamics, and uncertainty.
+-   Hilborn et al. 1995. Sustainable exploitation of renewable resources. Annual Review of Ecology and Systematics, Vol. 26, pp. 45-67.
+-   Hilborn et al. 2015. When is a fishery sustainable? CJFAS.
+-   Larkin 1977. An epitaph for the concept of maximum sustainable yield. Transactions of the American Fisheries Society.
 -   Myers 2002. Recruitment: understanding density-dependence in fish populations.
--   Quinn and Deriso 1999. Quantitative Fisheries Dynamics.  Chapter 11.
--   Restrepo and Powers 1999. Precautionary control rules in US fisheries management:
-specification and performance. ICES Journal of Marine Science. 
--   Ricker 1963. Big effects from small causes: Two examples from fish population dynamics. Journal of the Fisheries Research Board of Canada, 20, 257-264. 
-:::
-
-## References
-
-::: {style="font-size:25px"}
-
--   Schaefer 1954. Some aspects of the dvnamics of populations important to the management of the commercial marine fisheries. Inter.-Am. Trop. Tuna Comm. Bull. 1:25 - 56 
-- Walters 1975. Optimal harvest strategies for salmon in relation to environmental variability and uncertainty about production parameters. J. Fish. Res. Board Can. 
-- Walters and Hilborn 1976. Adaptive Control of fishing systems. J. Fish. Res. Board Can.
-- Walters and Hilborn 1978. Ecological optimization and adaptive management. Annual Review of Ecology and Systematics.
-- Walters and Parma 1996. Fixed exploitation rate strategies for coping with effects of climate change. Canadian Journal of Fisheries and Aquatic Sciences.
--   Walters and Martell 2004. Fisheries Ecology and Management.
-- Williams et al. 2002. Analysis and management of animal populations.
-
+-   Quinn and Deriso 1999. Quantitative Fish Dynamics.
+-   Walters 1986. Adaptive management of renewable resources.
 :::
