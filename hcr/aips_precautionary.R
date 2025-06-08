@@ -94,8 +94,16 @@ opt_yield <- nlminb(obj_yield$par, obj_yield$fn, obj_yield$gr)
 rep_yield <- obj_yield$report()
 logit_ucap <- opt_yield$par["logit_ucap"]
 ucap <- 1 / (1 + exp(-logit_ucap))
-Fmsy <- -log(1 - ucap)
-cat(Fmsy)
+F <- -log(1 - ucap)
+cat(F)
+
+doone <- function() {
+  nlminb(obj_yield$par + rnorm(length(obj_yield$par),
+                              sd = 0.05
+  ), obj_yield$fn, obj_yield$gr)$par
+}
+jit <- replicate(100, doone())
+boxplot(t(jit))
 
 # fit HARA utility rule
 data$upow <- 0.6
@@ -110,16 +118,24 @@ opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
 rep_hara <- obj_hara$report()
 logit_ucap <- opt_hara$par["logit_ucap"]
 ucap <- 1 / (1 + exp(-logit_ucap))
-Fmsy <- -log(1 - ucap)
-cat(Fmsy)
+F <- -log(1 - ucap)
+cat(F)
+
+doone <- function() {
+  nlminb(obj_hara$par + rnorm(length(obj_hara$par),
+                              sd = 0.05
+  ), obj_hara$fn, obj_hara$gr)$par
+}
+jit <- replicate(100, doone())
+boxplot(t(jit))
 
 # comparison plot
-pdf("compare_hcr_Ut_vs_vulbio.pdf", width = 7, height = 5)
+#pdf("compare_hcr_Ut_vs_vulbio.pdf", width = 7, height = 5)
 plot(rep_yield$vul_bio, rep_yield$Ut, pch = 16, col = "blue",
      xlab = "Vulnerable biomass", ylab = "Exploitation rate (U)",
      main = "HCR Comparison: Yield vs HARA")
 points(rep_hara$vul_bio, rep_hara$Ut, pch = 1, col = "darkred")
-legend("topright", legend = c("Yield-optimizing", "HARA-optimizing"),
+legend("bottomright", legend = c("Yield-optimizing", "HARA-optimizing"),
        col = c("blue", "darkred"), pch = c(16, 1), bty = "n")
-dev.off()
+#dev.off()
 
