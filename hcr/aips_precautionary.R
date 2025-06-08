@@ -37,7 +37,7 @@ f <- function(par) {
   
   log_n <- matrix(-Inf, n_years, n_ages)
   ssb <- yield <- vul_bio <- numeric(n_years)
-  Ft <- numeric(n_years - 1)
+  Ft <- Ut <- numeric(n_years - 1)
   
   log_n[1, ] <- log(ninit)
   ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
@@ -49,8 +49,8 @@ f <- function(par) {
     slope <- fcap / (btrigger - blim)
     ramp <- slope * (vb - blim)
     soft_ramp <- (1 / beta) * log(1 + exp(beta * ramp))
-    Ft[t - 1] <- fcap - (1 / beta) * log(1 + exp(beta * (fcap - soft_ramp)))
-    
+    Ut[t] <- fcap - (1 / beta) * log(1 + exp(beta * (fcap - soft_ramp)))
+    Ft[t - 1] <- -log(1 - Ut[t])
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
     for (a in 2:n_ages) {
@@ -68,6 +68,7 @@ f <- function(par) {
     vul_bio[t] <- sum(n * wa * vul)
     yield[t] <- sum(n * wa * Ft[t - 1] * vul / Zt * (1 - exp(-Zt)))
   }
+  REPORT(Ut)
   REPORT(yield)
   REPORT(vul_bio)
   REPORT(Ft)
@@ -124,15 +125,15 @@ doone <- function() {
 
 jit <- replicate(100, doone())
 boxplot(t(jit), main = "HARA-Optimizing HCR")
-plot(rep_hara$Ft ~ rep_hara$vul_bio[-1],
-     xlab = "Vulnerable biomass", ylab = "Fishing mortality",
-     main = "Ft vs Vul_Bio (HARA)")
+plot(rep_hara$Ft ~ rep_hara$vul_bio,
+     xlab = "Vulnerable biomass", ylab = "Exploitation rate (U)",
+     main = "Ut vs Vul_Bio (HARA)")
 
-pdf("compare_hcr_ft_vs_vulbio.pdf", width = 7, height = 5)
-plot(rep_yield$vul_bio[-1], rep_yield$Ft, pch = 16, col = "blue",
-     xlab = "Vulnerable biomass", ylab = "Fishing mortality (F)",
+pdf("compare_hcr_Ut_vs_vulbio.pdf", width = 7, height = 5)
+plot(rep_yield$vul_bio, rep_yield$Ut, pch = 16, col = "blue",
+     xlab = "Vulnerable biomass", ylab = "Exploitation rate (U)",
      main = "HCR Comparison: Yield vs HARA")
-points(rep_hara$vul_bio[-1], rep_hara$Ft, pch = 1, col = "darkred")
+points(rep_hara$vul_bio, rep_hara$Ut, pch = 1, col = "darkred")
 legend("topright", legend = c("Yield-optimizing", "HARA-optimizing"),
        col = c("blue", "darkred"), pch = c(16, 1), bty = "n")
 dev.off()
