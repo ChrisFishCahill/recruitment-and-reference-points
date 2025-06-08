@@ -25,7 +25,6 @@ recK <- 5 # Goodyear compensation ratio
 sbro <- sum(lo * mat * wa) # spawning biomass per recruit
 ln_alpha <- log(recK / sbro) # log alpha
 br <- (ln_alpha + log(sbro)) / (Ro * sbro) # ricker beta
-ninit <- Ro * lo # initial age structure
 
 # define objective function to minimize (negative yield)
 f <- function(logF) {
