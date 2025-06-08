@@ -84,7 +84,7 @@ data <- list(
 par <- list(
   log_lrp = log(0.2), # lrp
   log_btrigger = log(1.0), 
-  logit_ucap = qlogis(0.25)  # 25% exploitation cap
+  logit_ucap = qlogis(0.25)  
 )
 
 # fit yield-maximizing rule
@@ -97,20 +97,20 @@ ucap <- 1 / (1 + exp(-logit_ucap))
 F <- -log(1 - ucap)
 cat(F)
 
-doone <- function() {
-  nlminb(obj_yield$par + rnorm(length(obj_yield$par),
-                              sd = 0.05
-  ), obj_yield$fn, obj_yield$gr)$par
-}
-jit <- replicate(100, doone())
-boxplot(t(jit))
+# doone <- function() {
+#   nlminb(obj_yield$par + rnorm(length(obj_yield$par),
+#                               sd = 0.05
+#   ), obj_yield$fn, obj_yield$gr)$par
+# }
+# jit <- replicate(100, doone())
+# boxplot(t(jit))
 
 # fit HARA utility rule
 data$upow <- 0.6
 par <- list(
   log_lrp = log(0.3),
   log_btrigger = log(1.0),
-  logit_ucap = qlogis(0.15)  # 15% exploitation cap for HARA
+  logit_ucap = qlogis(0.15)  
 )
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
@@ -121,13 +121,13 @@ ucap <- 1 / (1 + exp(-logit_ucap))
 F <- -log(1 - ucap)
 cat(F)
 
-doone <- function() {
-  nlminb(obj_hara$par + rnorm(length(obj_hara$par),
-                              sd = 0.05
-  ), obj_hara$fn, obj_hara$gr)$par
-}
-jit <- replicate(100, doone())
-boxplot(t(jit))
+# doone <- function() {
+#   nlminb(obj_hara$par + rnorm(length(obj_hara$par),
+#                               sd = 0.05
+#   ), obj_hara$fn, obj_hara$gr)$par
+# }
+# jit <- replicate(100, doone())
+# boxplot(t(jit))
 
 # comparison plot
 #pdf("compare_hcr_Ut_vs_vulbio.pdf", width = 7, height = 5)
