@@ -32,7 +32,7 @@ f <- function(par) {
   getAll(data, par)
   blim <- exp(log_blim)
   btrigger <- exp(log_btrigger)
-  fcap <- exp(log_fcap)
+  ucap <- 1 / (1 + exp(-logit_ucap))  # logit scale ensures 0 < ucap < 1
   beta <- 80
   
   log_n <- matrix(-Inf, n_years, n_ages)
@@ -44,12 +44,11 @@ f <- function(par) {
   vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
   
   for (t in 2:n_years) {
-    log_vb <- log(vul_bio[t - 1])
-    vb <- exp(log_vb)
-    slope <- fcap / (btrigger - blim)
+    vb <- vul_bio[t - 1]
+    slope <- ucap / (btrigger - blim)
     ramp <- slope * (vb - blim)
     soft_ramp <- (1 / beta) * log(1 + exp(beta * ramp))
-    Ut[t] <- fcap - (1 / beta) * log(1 + exp(beta * (fcap - soft_ramp)))
+    Ut[t] <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
     Ft[t - 1] <- -log(1 - Ut[t])
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
@@ -85,7 +84,7 @@ data <- list(
 par <- list(
   log_blim = log(0.2),
   log_btrigger = log(1.0),
-  log_fcap = log(0.5)
+  logit_ucap = qlogis(0.25)  # 25% exploitation cap
 )
 
 # fit yield-maximizing rule
@@ -93,42 +92,28 @@ data$upow <- 1
 obj_yield <- MakeADFun(f, par, data = data)
 opt_yield <- nlminb(obj_yield$par, obj_yield$fn, obj_yield$gr)
 rep_yield <- obj_yield$report()
-
-# jitter replicates
-doone <- function() {
-  nlminb(obj_yield$par + rnorm(length(obj_yield$par), sd = 0.1),
-         obj_yield$fn, obj_yield$gr)$par
-}
-jit <- replicate(100, doone())
-boxplot(t(jit), main = "Yield-Optimizing HCR")
-plot(rep_yield$Ft ~ rep_yield$vul_bio[-1],
-     xlab = "Vulnerable biomass", ylab = "Fishing mortality",
-     main = "Ft vs Vul_Bio (Yield-Opt)")
+logit_ucap <- opt_yield$par["logit_ucap"]
+ucap <- 1 / (1 + exp(-logit_ucap))
+Fmsy <- -log(1 - ucap)
+cat(Fmsy)
 
 # fit HARA utility rule
 data$upow <- 0.6
 par <- list(
   log_blim = log(0.3),
   log_btrigger = log(1.0),
-  log_fcap = log(0.8)
+  logit_ucap = qlogis(0.15)  # 15% exploitation cap for HARA
 )
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
                    control = list(eval.max = 10000, iter.max = 10000))
 rep_hara <- obj_hara$report()
+logit_ucap <- opt_hara$par["logit_ucap"]
+ucap <- 1 / (1 + exp(-logit_ucap))
+Fmsy <- -log(1 - ucap)
+cat(Fmsy)
 
-# jitter replicates
-doone <- function() {
-  nlminb(obj_hara$par + rnorm(length(obj_hara$par), sd = 0.1),
-         obj_hara$fn, obj_hara$gr)$par
-}
-
-jit <- replicate(100, doone())
-boxplot(t(jit), main = "HARA-Optimizing HCR")
-plot(rep_hara$Ft ~ rep_hara$vul_bio,
-     xlab = "Vulnerable biomass", ylab = "Exploitation rate (U)",
-     main = "Ut vs Vul_Bio (HARA)")
-
+# comparison plot
 pdf("compare_hcr_Ut_vs_vulbio.pdf", width = 7, height = 5)
 plot(rep_yield$vul_bio, rep_yield$Ut, pch = 16, col = "blue",
      xlab = "Vulnerable biomass", ylab = "Exploitation rate (U)",
