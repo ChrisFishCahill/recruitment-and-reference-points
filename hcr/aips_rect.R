@@ -33,18 +33,18 @@ f <- function(par) {
   csl <- exp(log_csl)
   bhalf <- exp(log_bhalf)
   fmax <- exp(log_fmax)
-  
+
   log_n <- matrix(-Inf, n_years, n_ages)
   ssb <- yield <- vul_bio <- numeric(n_years)
   Ft <- numeric(n_years - 1)
-  
+
   log_n[1, ] <- log(ninit)
   ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
   vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
-  
+
   for (t in 2:n_years) {
-    log_vb <- log(vul_bio[t - 1]) 
-    Ft[t-1]=fmax/(1+exp(-csl*(exp(log_vb)-bhalf)))
+    log_vb <- log(vul_bio[t - 1])
+    Ft[t - 1] <- fmax / (1 + exp(-csl * (exp(log_vb) - bhalf)))
 
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
@@ -92,169 +92,22 @@ doone <- function() {
 jit <- replicate(100, doone())
 boxplot(t(jit))
 
+plot(obj_yield$report()$`Ft` ~ obj_yield$report()$`vul_bio`[-1])
+
 # fit HARA utility rule
-par <- list(log_csl = log(0.2), log_bhalf = log(5), log_fmax = log(0.8))
+data$upow <- 0.6
+par <- list(log_csl = log(0.2), log_bhalf = log(5), log_fmax = log(0.1))
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
-                   control = list(eval.max = 10000, iter.max = 10000)
+  control = list(eval.max = 10000, iter.max = 10000)
 )
 rep_hara <- obj_hara$report()
 
 doone <- function() {
   nlminb(obj_hara$par + rnorm(length(obj_hara$par),
-                               sd = 0.1
+    sd = 0.1
   ), obj_hara$fn, obj_hara$gr)$par
 }
 jit <- replicate(100, doone())
 boxplot(t(jit))
-
-# extract fitted parameters
-lrp_y <- exp(opt_yield$par["log_lrp"])
-cslope_y <- exp(opt_yield$par["log_cslope"])
-lrp_h <- exp(opt_hara$par["log_lrp"])
-cslope_h <- exp(opt_hara$par["log_cslope"])
-
-# extract vulnerable biomass and Ft
-vb_y <- rep_yield$vul_bio
-vb_h <- rep_hara$vul_bio
-Ft_y <- rep_yield$Ft
-Ft_h <- rep_hara$Ft
-
-# biomass range for drawing the fitted curve
-vb_seq <- seq(0.001, max(c(vb_y, vb_h)) * 1.1, length.out = 300)
-
-# Fitted Ft curves
-delta_y <- log(vb_seq / lrp_y)
-Ft_y_fit <- cslope_y * plogis(10 * delta_y) * (1 - exp(-delta_y))
-
-delta_h <- log(vb_seq / lrp_h)
-Ft_h_fit <- cslope_h * plogis(10 * delta_h) * (1 - exp(-delta_h))
-
-# TAC = Ft × vb
-TAC_y <- Ft_y_fit * vb_seq
-TAC_h <- Ft_h_fit * vb_seq
-
-# 2x2 layout (TAC on top, Ft on bottom)
-par(mfrow = c(2, 2), mar = c(4, 4.2, 2, 1))
-
-# 1. TAC vs vb (yield)
-plot(vb_seq, TAC_y,
-     type = "l", lwd = 2, col = "blue",
-     xlab = "Vulnerable biomass", ylab = "Total allowable catch (TAC)",
-     main = "TAC = Ft × vb (yield)"
-)
-abline(v = lrp_y, col = "blue", lty = 3)
-
-# 2. TAC vs vb (HARA)
-plot(vb_seq, TAC_h,
-     type = "l", lwd = 2, col = "red",
-     xlab = "Vulnerable biomass", ylab = "Total allowable catch (TAC)",
-     main = "TAC = Ft × vb (HARA)"
-)
-abline(v = lrp_h, col = "red", lty = 3)
-
-# 3. Ft vs vb (yield)
-plot(vb_y[-n_years], Ft_y,
-     pch = 16, col = "blue", cex = 0.4,
-     xlab = "Vulnerable biomass", ylab = "Fishing mortality Ft",
-     main = "Max yield (upow = 1)"
-)
-abline(v = lrp_y, col = "blue", lty = 3)
-
-# 4. Ft vs vb (HARA)
-plot(vb_h[-n_years], Ft_h,
-     pch = 16, col = "red", cex = 0.4,
-     xlab = "Vulnerable biomass", ylab = "Fishing mortality Ft",
-     ylim = c(0, max(Ft_y, Ft_h)),
-     main = "HARA utility (upow = 0.6)"
-)
-abline(v = lrp_h, col = "red", lty = 3)
-
-# ----- plot showing why Ft is nonlinear from linear TAC -----
-
-lrp_plot <- exp(opt_yield$par["log_lrp"])
-cslope_plot <- exp(opt_yield$par["log_cslope"])
-vb_seq <- seq(0.01, 2, length.out = 500)
-TAC <- cslope_plot * pmax(0, vb_seq - lrp_plot)
-Ft_implied <- TAC / vb_seq
-
-par(mfrow = c(2, 1), mar = c(4, 4.2, 2, 1))
-
-plot(vb_seq, TAC,
-     type = "l", lwd = 2, col = "black",
-     xlab = "Vulnerable biomass (vb)", ylab = "Total allowable catch (TAC)",
-     main = "TAC = c × (vb − LRP) is linear"
-)
-abline(v = lrp_plot, col = "gray", lty = 3)
-text(lrp_plot + 0.1, max(TAC) * 0.8, "LRP", col = "gray")
-
-plot(vb_seq, Ft_implied,
-     type = "l", lwd = 2, col = "blue",
-     xlab = "Vulnerable biomass (vb)", ylab = "Fishing mortality (Ft)",
-     main = "Ft = TAC / vb is nonlinear"
-)
-abline(v = lrp_plot, col = "gray", lty = 3)
-text(lrp_plot + 0.1, max(Ft_implied) * 0.8, "LRP", col = "gray")
-
-# ----- plot dynamics -----
-
-years <- 920:999
-t_seq <- years - 919
-
-Ft_y_sub <- rep_yield$Ft[years]
-Ft_h_sub <- rep_hara$Ft[years]
-vb_y_sub <- rep_yield$vul_bio[years]
-vb_h_sub <- rep_hara$vul_bio[years]
-yield_y_sub <- rep_yield$yield[years]
-yield_h_sub <- rep_hara$yield[years]
-
-par(mfrow = c(3, 1), mar = c(4, 4.2, 2, 1))
-
-plot(t_seq, Ft_y_sub,
-     type = "l", lwd = 2, col = "blue",
-     ylab = "Fishing mortality (F)", xlab = "Year",
-     main = "F(t) through time"
-)
-lines(t_seq, Ft_h_sub, col = "red", lwd = 2, lty = 2)
-legend("topleft",
-       legend = c("Max yield", "HARA utility"),
-       col = c("blue", "red"), lwd = 2, lty = c(1, 2), bty = "n"
-)
-
-plot(t_seq, vb_y_sub,
-     type = "l", lwd = 2, col = "blue", ylim = c(0, 3),
-     ylab = "Vulnerable biomass", xlab = "Year",
-     main = "Biomass through time"
-)
-lines(t_seq, vb_h_sub, col = "red", lwd = 2, lty = 2)
-legend("topleft",
-       legend = c("Max yield", "HARA utility"),
-       col = c("blue", "red"), lwd = 2, lty = c(1, 2), bty = "n"
-)
-
-plot(t_seq, yield_y_sub,
-     type = "l", lwd = 2, col = "blue",
-     ylab = "Yield", xlab = "Year",
-     main = "Yield achieved through time"
-)
-lines(t_seq, yield_h_sub, col = "red", lwd = 2, lty = 2)
-legend("topleft",
-       legend = c("Max yield", "HARA utility"),
-       col = c("blue", "red"), lwd = 2, lty = c(1, 2), bty = "n"
-)
-
-# final output
-mean_yield_yield <- mean(rep_yield$yield)
-mean_yield_hara <- mean(rep_hara$yield)
-
-cat("Mean yield (yield-maximizing):", mean_yield_yield, "\n")
-cat("Mean yield (HARA utility):", mean_yield_hara, "\n")
-
-#----------------------------
-# Some stuff to discuss
-# Dynamic programming solutions from 1975-1990s show these general findings
-# Parama, Walters, Hilborn, more Walters, etc.
-# Gives you a means to manage a dynamic fishery via a feedback policy
-# Which policy is more sustainable?
-# Could you do this with more complex objective functions? yes, but likely requires
-# simulation (like MSE) or something similar, also...
+plot(obj_hara$report()$`Ft` ~ obj_hara$report()$`vul_bio`[-1])
