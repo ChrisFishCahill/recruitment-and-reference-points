@@ -44,8 +44,8 @@ f <- function(par) {
 
   for (t in 2:n_years) {
     log_vb <- log(vul_bio[t - 1])
-    Ft[t - 1] <- fmax / (1 + exp(-csl * (exp(log_vb) - bhalf)))
-
+    Ut <- fmax / (1 + exp(-csl * (exp(log_vb) - bhalf)))
+    Ft[t - 1] <- -log(1 - Ut)
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
     for (a in 2:n_ages) {
@@ -96,7 +96,7 @@ plot(obj_yield$report()$`Ft` ~ obj_yield$report()$`vul_bio`[-1])
 
 # fit HARA utility rule
 data$upow <- 0.6
-par <- list(log_csl = log(1), log_bhalf = log(1), log_fmax = log(1))
+par <- list(log_csl = log(2), log_bhalf = log(0.5), log_fmax = log(0.5))
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
   control = list(eval.max = 10000, iter.max = 10000)
