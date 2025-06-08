@@ -231,12 +231,8 @@ legend("topleft",
   col = c("blue", "red"), lwd = 2, lty = c(1, 2), bty = "n"
 )
 
-# final output
-mean_yield_yield <- mean(rep_yield$yield)
-mean_yield_hara <- mean(rep_hara$yield)
-
-cat("Mean yield (yield-maximizing):", mean_yield_yield, "\n")
-cat("Mean yield (HARA utility):", mean_yield_hara, "\n")
+cat("Mean yield (yield-maximizing):", -opt_yield$objective, "\n")
+cat("Mean HARA utility:", -opt_hara$objective, "\n")
 
 #----------------------------
 # Some stuff to discuss
