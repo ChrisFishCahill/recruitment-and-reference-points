@@ -30,7 +30,7 @@ wt <- rnorm(n_years - 1, 0, sdr)
 # objective function with precautionary HCR
 f <- function(par) {
   getAll(data, par)
-  blim <- exp(log_blim)
+  lrp <- exp(log_lrp)
   btrigger <- exp(log_btrigger)
   ucap <- 1 / (1 + exp(-logit_ucap))  # logit scale ensures 0 < ucap < 1
   beta <- 80
@@ -45,8 +45,8 @@ f <- function(par) {
   
   for (t in 2:n_years) {
     vb <- vul_bio[t - 1]
-    slope <- ucap / (btrigger - blim)
-    ramp <- slope * (vb - blim)
+    slope <- ucap / (btrigger - lrp)
+    ramp <- slope * (vb - lrp)
     soft_ramp <- (1 / beta) * log(1 + exp(beta * ramp))
     Ut[t] <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
     Ft[t - 1] <- -log(1 - Ut[t])
@@ -82,8 +82,8 @@ data <- list(
 
 # starting values for yield-maximizing HCR
 par <- list(
-  log_blim = log(0.2),
-  log_btrigger = log(1.0),
+  log_lrp = log(0.2), # lrp
+  log_btrigger = log(1.0), 
   logit_ucap = qlogis(0.25)  # 25% exploitation cap
 )
 
@@ -108,7 +108,7 @@ boxplot(t(jit))
 # fit HARA utility rule
 data$upow <- 0.6
 par <- list(
-  log_blim = log(0.3),
+  log_lrp = log(0.3),
   log_btrigger = log(1.0),
   logit_ucap = qlogis(0.15)  # 15% exploitation cap for HARA
 )
