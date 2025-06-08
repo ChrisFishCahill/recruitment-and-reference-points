@@ -43,6 +43,7 @@ f <- function(par) {
   
   for (t in 2:n_years) {
     log_vb <- log(vul_bio[t - 1]) 
+    # linear HCR should specify TAC=max(0,cslope*(vB-lrp)), which implies Ft=-ln(1-TAC/vB)
     # https://en.wikipedia.org/wiki/Softplus Softplus approximation to a 
     # non-differentiable function 
     beta <- 100
