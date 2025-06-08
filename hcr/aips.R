@@ -46,7 +46,7 @@ f <- function(par) {
     delta_log <- log_vb - log(lrp)
     # https://en.wikipedia.org/wiki/Softplus Softplus approximation to a 
     # non-differentiable function 
-    Ft[t - 1] <- cslope * plogis(50 * delta_log) * (1 - exp(-delta_log))
+    Ft[t - 1] <- cslope * plogis(1000 * delta_log) * (1 - exp(-delta_log))
     
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
