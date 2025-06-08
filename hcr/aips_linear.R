@@ -32,6 +32,7 @@ f <- function(par) {
   getAll(data, par)
   lrp <- exp(log_lrp)
   cslope <- exp(log_cslope)
+  beta <- 80 # as beta -> inf, approximation -> max(0,z)
 
   log_n <- matrix(-Inf, n_years, n_ages)
   ssb <- yield <- vul_bio <- numeric(n_years)
@@ -46,7 +47,6 @@ f <- function(par) {
     # linear HCR should specify TAC=max(0,cslope*(vB-lrp)), which implies Ft=-ln(1-TAC/vB)
     # https://en.wikipedia.org/wiki/Softplus Softplus approximation to a
     # non-differentiable function
-    beta <- 100
     Ut <- 1 / beta * log(1 + exp(beta * cslope * (exp(log_vb) - lrp))) / exp(log_vb)
     Ft[t - 1] <- -log(1 - Ut)
     Zt <- Ft[t - 1] * vul + M
