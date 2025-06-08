@@ -43,11 +43,10 @@ f <- function(par) {
   
   for (t in 2:n_years) {
     log_vb <- log(vul_bio[t - 1]) 
-    delta_log <- log_vb - log(lrp)
     # https://en.wikipedia.org/wiki/Softplus Softplus approximation to a 
     # non-differentiable function 
-    Ft[t - 1] <- cslope * plogis(1000 * delta_log) * (1 - exp(-delta_log))
-    
+    beta <- 100
+    Ft[t-1] <- 1/beta * log(1 + exp(beta * cslope * (exp(log_vb) - lrp)))/exp(log_vb)
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
     for (a in 2:n_ages) {
@@ -88,8 +87,8 @@ rep_yield <- obj_yield$report()
 
 # fit HARA utility rule
 data$upow <- 0.6
-par$log_cslope <- log(0.4)
-par$log_lrp <- log(1e-10)
+par$log_cslope <- log(0.3)
+par$log_lrp <- log(1)
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
                    control = list(eval.max = 10000, iter.max = 10000)
