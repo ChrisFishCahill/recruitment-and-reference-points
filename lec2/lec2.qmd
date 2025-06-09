@@ -478,7 +478,7 @@ $$
 -  Dome shaped vulnerability
 -  Interaction of vulnerability and maturity schedule
 -  High values of Fmsy
-  - The can arise, but you want to know why this is happening
+    - This can arise, but you want to know why this is happening
 -  Ricker vs. Beverton-Holt
 - Bias correcting parameters: if you bias correct something and then plug it into another equation...
 - Still an equilibrium answer!
