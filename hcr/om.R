@@ -27,7 +27,7 @@ sdr <- 0.05 # LOOK HERE
 set.seed(1)
 wt <- rnorm(n_years - 1, 0, sdr)
 
-# objective function 
+# objective function
 f <- function(par) {
   getAll(data, par)
   Ft <- exp(logF)
@@ -114,6 +114,7 @@ layout(matrix(1:4, 2, 2, byrow = TRUE))
 par(mar = c(4, 4.2, 2, 1))
 
 # Panel 1: Absolute scale, yield
+par(mfrow = c(2, 1))
 plot(vb_yield, Ft_y,
   pch = 19, col = "grey50", cex = 0.6,
   xlab = "Vulnerable biomass", ylab = "Estimated Ft",
@@ -173,36 +174,37 @@ points(vb_hara[highlight_idx] / vbo, Ft_h[highlight_idx],
 )
 abline(v = 1, col = "black", lty = 2)
 
-par(mfrow=c(1,1))
 # Panel 5: Yield-maximizing (U space)
 Ut_y <- 1 - exp(-Ft_y)
 plot(vb_yield / vbo, Ut_y,
-     pch = 19, col = "grey50", cex = 0.6,
-     xlab = "Relative vulnerable biomass", ylab = "Exploitation rate (U)",
-     main = "Yield-maximizing in U space", ylim = c(0, 1), xlim = c(0, 1)
+  pch = 19, col = "grey50", cex = 0.6,
+  xlab = "Relative vulnerable biomass", ylab = "Exploitation rate (U)",
+  main = "Yield-maximizing in U space", ylim = c(0, 1), xlim = c(0, 1)
 )
 points(vb_yield[highlight_idx] / vbo, Ut_y[highlight_idx],
-       pch = 4, col = "blue", lwd = 1.2
+  pch = 4, col = "blue", lwd = 1.2
 )
 abline(v = 1, col = "black", lty = 2)
+abline(h = 0.5, col = "black", lty = 2)
 
 # Panel 6: Risk-averse (U space)
 Ut_h <- 1 - exp(-Ft_h)
 plot(vb_hara / vbo, Ut_h,
-     pch = 19, col = "grey50", cex = 0.6,
-     xlab = "Relative vulnerable biomass", ylab = "Exploitation rate (U)",
-     main = "Risk-averse in U space", ylim = c(0, 1), xlim = c(0, 1)
+  pch = 19, col = "grey50", cex = 0.6,
+  xlab = "Relative vulnerable biomass", ylab = "Exploitation rate (U)",
+  main = "Risk-averse in U space", ylim = c(0, 1), xlim = c(0, 1)
 )
 points(vb_hara[highlight_idx] / vbo, Ut_h[highlight_idx],
-       pch = 4, col = "blue", lwd = 1.2
+  pch = 4, col = "blue", lwd = 1.2
 )
 abline(v = 1, col = "black", lty = 2)
+abline(h = 0.5, col = "black", lty = 2)
 
 # Things worth thinking about
-# What do you see, and what do you think is going on? 
-# What are the points to the far right? What is the OM trying to do? 
-# How do these patterns change with more recruitment variability? 
-# Pros and cons of an HCR or OM vs. a basic Fmsy policy? 
+# What do you see, and what do you think is going on?
+# What are the points to the far right? What is the OM trying to do?
+# How do these patterns change with more recruitment variability?
+# Pros and cons of an HCR or OM vs. a basic Fmsy policy?
 # What are some ways you could extend this? How does it differ from close-loop
-# management strategy evaluation or dynamic programming solutions to the 
-# feedback policy design problem? 
+# management strategy evaluation or dynamic programming solutions to the
+# feedback policy design problem?
