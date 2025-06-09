@@ -47,8 +47,8 @@ f <- function(par) {
     # linear HCR should specify TAC=max(0,cslope*(vB-lrp)), which implies Ft=-ln(1-TAC/vB)
     # https://en.wikipedia.org/wiki/Softplus Softplus approximation to a
     # non-differentiable function
-    Ut <- 1 / beta * log(1 + exp(beta * cslope * (exp(log_vb) - lrp))) / exp(log_vb)
-    Ft[t - 1] <- -log(1 - Ut)
+    Ut[t - 1] <- 1 / beta * log(1 + exp(beta * cslope * (exp(log_vb) - lrp))) / exp(log_vb)
+    Ft[t - 1] <- -log(1 - Ut[t - 1])
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
     for (a in 2:n_ages) {
@@ -69,6 +69,7 @@ f <- function(par) {
   REPORT(yield)
   REPORT(vul_bio)
   REPORT(Ft)
+  REPORT(Ut)
   -mean(yield^upow)
 }
 
@@ -90,7 +91,7 @@ rep_yield <- obj_yield$report()
 # fit HARA utility rule
 data$upow <- 0.6
 par$log_cslope <- log(0.3)
-par$log_lrp <- log(1)
+par$log_lrp <- log(1.5)
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
   control = list(eval.max = 10000, iter.max = 10000)
@@ -128,45 +129,60 @@ TAC_h_pred <- softplus(cslope_h * (vb_h[-n_years] - lrp_h), beta)
 Ft_h_pred <- TAC_h_pred / vb_h[-n_years]
 Ut_h_pred <- 1 - exp(-Ft_h_pred)
 
-# Plot layout
+# sort vb and predictions before drawing lines
+ix_y <- order(vb_y[-n_years])
+ix_h <- order(vb_h[-n_years])
+
+# plot layout
 par(mfrow = c(2, 2), mar = c(4, 4.2, 2, 1))
 
-# 1. TAC vs vb (yield)
-plot(vb_y[-n_years], TAC_y_obs,
-  type = "p", pch = 16, col = "blue", cex = 0.4,
-  xlab = "Vulnerable biomass (vb)",
-  ylab = "TAC = U × vb",
-  main = "TAC vs vb (Yield)"
+# 1. TAC vs vb (Yield)
+plot(vb_y[-1], TAC_y_obs,
+     type = "p", pch = 16, col = "dodgerblue3", cex = 0.4,
+     xlab = "Vulnerable biomass (vb)",
+     ylab = "TAC = U × vb",
+     main = "TAC vs vb (Yield)"
 )
-abline(v = lrp_y, col = "blue", lty = 3)
+abline(v = lrp_y, col = "dodgerblue3", lty = 3)
+lines(vb_y[-n_years][ix_y], TAC_y_pred[ix_y], col = "dodgerblue3", lwd = 2)
 
 # 2. TAC vs vb (HARA)
-plot(vb_h[-n_years], TAC_h_obs,
-  type = "p", pch = 16, col = "red", cex = 0.4,
-  xlab = "Vulnerable biomass (vb)",
-  ylab = "TAC = U × vb",
-  main = "TAC vs vb (HARA)"
+plot(vb_h[-1], TAC_h_obs,
+     type = "p", pch = 16, col = "darkorchid3", cex = 0.4,
+     xlab = "Vulnerable biomass (vb)",
+     ylab = "TAC = U × vb",
+     main = "TAC vs vb (HARA)"
 )
-abline(v = lrp_h, col = "red", lty = 3)
+abline(v = lrp_h, col = "darkorchid3", lty = 3)
+lines(vb_h[-n_years][ix_h], TAC_h_pred[ix_h], col = "darkorchid3", lwd = 2)
+
+# clean input sequence for vb
+vb_seq_y <- seq(min(vb_y), max(vb_y), length.out = 200)
+vb_seq_h <- seq(min(vb_h), max(vb_h), length.out = 200)
+
+Ft_y_smooth <- -log(1 - softplus(cslope_y * (vb_seq_y - lrp_y), beta) / vb_seq_y)
+Ft_h_smooth <- -log(1 - softplus(cslope_h * (vb_seq_h - lrp_h), beta) / vb_seq_h)
 
 # 3. Ft vs vb (Yield)
-plot(vb_y[-n_years], Ft_y,
-  type = "p", pch = 16, col = "blue", cex = 0.4,
-  xlab = "Vulnerable biomass (vb)",
-  ylab = "Fishing mortality (Ft)",
-  main = "Ft vs vb (Yield)"
+plot(vb_y[-1], Ft_y,
+     type = "p", pch = 16, col = "dodgerblue3", cex = 0.4,
+     xlab = "Vulnerable biomass (vb)",
+     ylab = "Fishing mortality (Ft)",
+     main = "Ft vs vb (Yield)"
 )
-abline(v = lrp_y, col = "blue", lty = 3)
+abline(v = lrp_y, col = "dodgerblue3", lty = 3)
+lines(vb_seq_y, Ft_y_smooth, col = "dodgerblue3", lwd = 2)
 
 # 4. Ft vs vb (HARA)
-plot(vb_h[-n_years], Ft_h,
-  type = "p", pch = 16, col = "red", cex = 0.4,
-  xlab = "Vulnerable biomass (vb)",
-  ylab = "Fishing mortality (Ft)",
-  main = "Ft vs vb (HARA)",
-  ylim = c(0, max(Ft_y, Ft_h))
+plot(vb_h[-1], Ft_h,
+     type = "p", pch = 16, col = "darkorchid3", cex = 0.4,
+     xlab = "Vulnerable biomass (vb)",
+     ylab = "Fishing mortality (Ft)",
+     main = "Ft vs vb (HARA)",
+     ylim = c(0, max(Ft_y, Ft_h))
 )
-abline(v = lrp_h, col = "red", lty = 3)
+abline(v = lrp_h, col = "darkorchid3", lty = 3)
+lines(vb_seq_h, Ft_h_smooth, col = "darkorchid3", lwd = 2)
 
 #----------------------------
 # Some stuff to discuss

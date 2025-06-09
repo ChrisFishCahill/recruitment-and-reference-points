@@ -32,24 +32,24 @@ f <- function(par) {
   getAll(data, par)
   lrp <- exp(log_lrp)
   btrigger <- exp(log_btrigger)
-  ucap <- 1 / (1 + exp(-logit_ucap))  # logit scale ensures 0 < ucap < 1
+  ucap <- 1 / (1 + exp(-logit_ucap)) # logit scale ensures 0 < ucap < 1
   beta <- 80
-  
+
   log_n <- matrix(-Inf, n_years, n_ages)
   ssb <- yield <- vul_bio <- numeric(n_years)
   Ft <- Ut <- numeric(n_years - 1)
-  
+
   log_n[1, ] <- log(ninit)
   ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
   vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
-  
+
   for (t in 2:n_years) {
     vb <- vul_bio[t - 1]
     slope <- ucap / (btrigger - lrp)
     ramp <- slope * (vb - lrp)
     soft_ramp <- (1 / beta) * log(1 + exp(beta * ramp))
-    Ut[t] <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
-    Ft[t - 1] <- -log(1 - Ut[t])
+    Ut[t - 1] <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
+    Ft[t - 1] <- -log(1 - Ut[t - 1])
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
     for (a in 2:n_ages) {
@@ -83,8 +83,8 @@ data <- list(
 # starting values for yield-maximizing HCR
 par <- list(
   log_lrp = log(0.2), # lrp
-  log_btrigger = log(1.0), 
-  logit_ucap = qlogis(0.25)  
+  log_btrigger = log(1.0),
+  logit_ucap = qlogis(0.25)
 )
 
 # fit yield-maximizing rule
@@ -110,11 +110,12 @@ data$upow <- 0.6
 par <- list(
   log_lrp = log(0.3),
   log_btrigger = log(1.0),
-  logit_ucap = qlogis(0.15)  
+  logit_ucap = qlogis(0.15)
 )
 obj_hara <- MakeADFun(f, par, data = data)
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
-                   control = list(eval.max = 10000, iter.max = 10000))
+  control = list(eval.max = 10000, iter.max = 10000)
+)
 rep_hara <- obj_hara$report()
 logit_ucap <- opt_hara$par["logit_ucap"]
 ucap <- 1 / (1 + exp(-logit_ucap))
@@ -129,13 +130,110 @@ cat(F)
 # jit <- replicate(100, doone())
 # boxplot(t(jit))
 
-# comparison plot
-#pdf("compare_hcr_Ut_vs_vulbio.pdf", width = 7, height = 5)
-plot(rep_yield$vul_bio, rep_yield$Ut, pch = 16, col = "blue",
-     xlab = "Vulnerable biomass", ylab = "Exploitation rate (U)",
-     main = "HCR Comparison: Yield vs HARA")
-points(rep_hara$vul_bio, rep_hara$Ut, pch = 1, col = "darkred")
-legend("bottomright", legend = c("Yield-optimizing", "HARA-optimizing"),
-       col = c("blue", "darkred"), pch = c(16, 1), bty = "n")
-#dev.off()
+# ---- helper ----
+softplus <- function(z, beta) (1 / beta) * log1p(exp(beta * z))
+beta <- 80
 
+# extract fitted parameters
+lrp_y <- exp(opt_yield$par["log_lrp"])
+btrig_y <- exp(opt_yield$par["log_btrigger"])
+ucap_y <- 1 / (1 + exp(-opt_yield$par["logit_ucap"]))
+slope_y <- ucap_y / (btrig_y - lrp_y)
+
+lrp_h <- exp(opt_hara$par["log_lrp"])
+btrig_h <- exp(opt_hara$par["log_btrigger"])
+ucap_h <- 1 / (1 + exp(-opt_hara$par["logit_ucap"]))
+slope_h <- ucap_h / (btrig_h - lrp_h)
+
+# biomass vectors
+vb_y <- rep_yield$vul_bio
+vb_h <- rep_hara$vul_bio
+vb_seq <- seq(0.001, max(c(vb_y, vb_h)) * 1.05, length.out = 300)
+
+# smooth predicted Ut
+ramp_y <- slope_y * (vb_seq - lrp_y)
+soft_ramp_y <- softplus(ramp_y, beta)
+Ut_y_pred <- ucap_y - softplus(ucap_y - soft_ramp_y, beta)
+
+ramp_h <- slope_h * (vb_seq - lrp_h)
+soft_ramp_h <- softplus(ramp_h, beta)
+Ut_h_pred <- ucap_h - softplus(ucap_h - soft_ramp_h, beta)
+
+# plot: Ut vs vb
+par(mfrow = c(2, 2), mar = c(4, 4.2, 2, 1))
+plot(vb_y[-1], rep_yield$Ut,
+  col = "dodgerblue3", pch = 16, cex = 0.4,
+  xlab = "Vulnerable biomass", ylab = "Exploitation rate (Ut)",
+  main = "Ut vs vb"
+)
+points(vb_h[-1], rep_hara$Ut, col = "darkorchid3", pch = 1, cex = 0.4)
+lines(vb_seq, Ut_y_pred, col = "dodgerblue3", lwd = 2)
+lines(vb_seq, Ut_h_pred, col = "darkorchid3", lwd = 2)
+legend("bottomright",
+  legend = c("Yield", "HARA"),
+  col = c("dodgerblue3", "darkorchid3"), pch = c(16, 1), lty = 1, bty = "n"
+)
+
+# plot: Ft vs vb
+Ft_y <- rep_yield$Ft
+Ft_h <- rep_hara$Ft
+Ft_y_pred <- -log(1 - Ut_y_pred)
+Ft_h_pred <- -log(1 - Ut_h_pred)
+
+plot(vb_y[-1], rep_yield$Ft,
+  col = "dodgerblue3", pch = 16, cex = 0.4,
+  xlab = "Vulnerable biomass", ylab = "Fishing mortality (Ft)",
+  main = "Ft vs vb"
+)
+points(vb_h[-1], rep_hara$Ft, col = "darkorchid3", pch = 1, cex = 0.4)
+lines(vb_seq, Ft_y_pred, col = "dodgerblue3", lwd = 2)
+lines(vb_seq, Ft_h_pred, col = "darkorchid3", lwd = 2)
+
+# plot: TAC vs vb
+TAC_y <- rep_yield$Ut * vb_y[-1]
+TAC_h <- rep_hara$Ut * vb_h[-1]
+TAC_y_pred <- Ut_y_pred * vb_seq
+TAC_h_pred <- Ut_h_pred * vb_seq
+
+plot(vb_y[-1], TAC_y,
+  col = "dodgerblue3", pch = 16, cex = 0.4,
+  xlab = "Vulnerable biomass", ylab = "TAC",
+  main = "TAC vs vb"
+)
+points(vb_h[-1], TAC_h, col = "darkorchid3", pch = 1, cex = 0.4)
+lines(vb_seq, TAC_y_pred, col = "dodgerblue3", lwd = 2)
+lines(vb_seq, TAC_h_pred, col = "darkorchid3", lwd = 2)
+
+# plot: time series of Ft, vb, yield
+years <- 920:999
+t_seq <- years - 919
+plot(t_seq, Ft_y[years],
+  type = "l", col = "dodgerblue3", lwd = 2,
+  ylim = c(0, max(Ft_y, Ft_h)), ylab = "Ft", xlab = "Year",
+  main = "Ft through time"
+)
+lines(t_seq, Ft_h[years], col = "darkorchid3", lwd = 2, lty = 2)
+
+par(mfrow = c(1, 1))
+plot(t_seq, vb_y[years],
+  type = "l", col = "dodgerblue3", lwd = 2,
+  ylim = c(0, max(vb_y, vb_h)), ylab = "vb", xlab = "Year",
+  main = "Biomass through time"
+)
+lines(t_seq, vb_h[years], col = "darkorchid3", lwd = 2, lty = 2)
+legend("topright",
+  legend = c("Yield", "HARA"),
+  col = c("dodgerblue3", "darkorchid3"), pch = c(16, 1), lty = 1, bty = "n"
+)
+
+plot(t_seq, rep_yield$yield[years],
+  type = "l", col = "dodgerblue3", lwd = 2,
+  ylim = c(0, max(rep_yield$yield, rep_hara$yield)),
+  ylab = "Yield", xlab = "Year",
+  main = "Yield through time"
+)
+lines(t_seq, rep_hara$yield[years], col = "darkorchid3", lwd = 2, lty = 2)
+legend("topright",
+  legend = c("Yield", "HARA"),
+  col = c("dodgerblue3", "darkorchid3"), pch = c(16, 1), lty = 1, bty = "n"
+)
