@@ -1,0 +1,235 @@
+---
+subtitle: Simulation based Fmsy
+author: Christopher L. Cahill <br> Associate Director
+---
+
+##  {.background background-image="images/groundhog.jpeg" background-size="80%"}
+
+[Bill Murray in *Groundhog Day*; Refinement through iteration]{.footerRight}
+
+## Objectives
+
+::: {style="font-size:30px"}
+-   Extend equilibrium $F_{\mathrm{MSY}}$ calculations for age-structured models to non-equilibrium settings via simulation
+
+    -   Primarily by adding recruitment variability around a stock-recruitment relationship, though many alternatives exist
+
+-   Compare $F_{\mathrm{MSY}_{sim}}$ to $F_{\mathrm{MSY}_{eq}}$
+
+-   Become fluent in a standard age-structured fisheries model à la Cahill
+:::
+
+##  {.background background-image="images/dfo.png" background-size="contain" background-size="80%"}
+
+[$F_{\mathrm{MSY}_{sim}}$ often plugged into so-called precatuionary rules]{.footerRight}
+
+##  {.background background-image="images/gbu.jpg" background-size="contain" background-size="80%"}
+
+[*The Good, The Bad, and the Ugly* of this lecture]{.footerLeft}
+
+## Age-structured population dynamics 
+
+::: {style="font-size:24px"}
+
+$$
+N_{t,a} =
+\begin{cases}
+\displaystyle \frac{\alpha \cdot SSB_{t-1}}{1 + \beta \cdot SSB_{t-1}} \cdot e^{w_{t-1}}, & a = 1 \\\\
+N_{t-1,a-1} \cdot e^{-Z_{t-1,a-1}}, & 2 \leq a < a_{\text{max}} \\\\
+N_{t,a_{\text{max}}} + N_{t-1,a_{\text{max}}} \cdot e^{-Z_{t-1,a_{\text{max}}}}, & a = a_{\text{max}} \text{ (plus group)}
+\end{cases}
+$$
+
+Where:
+
+$N_{1,a} = N_{\text{init},a}$  
+  
+$SSB_1 = \sum_a N_{1,a} \cdot m_a \cdot w_a$  
+  
+$w_t \sim \text{Normal}(0, \sigma^2_{r})$  
+  
+$Z_{t,a} = F \cdot v_a + M$  
+  
+$SSB_t = \sum_a N_{t,a} \cdot m_a \cdot w_a$  
+  
+$Y_t = \sum_a N_{t,a} \cdot w_a \cdot \frac{F \cdot v_a}{Z_{t,a}} \cdot \left(1 - e^{-Z_{t,a}} \right)$
+
+:::
+
+## Initializing an age-structured model 
+
+::: {style="font-size:30px"}
+
+- Botsford incidence functions and survivorship vectors ($l_o$, $l_x$) make it easy to initialize a population dynamics model 
+- In an unfished population, the age structure is simply $R_0 \cdot l_o$
+
+```{R echo = F, eval = T, fig.width=12, fig.height=4}
+# life history vectors
+wa <- c(0.05, 0.104, 0.145, 0.186, 0.212, 0.253)
+mat <- c(0.05, 0.20, 0.82, 0.99, 1.00, 1.00)
+M <- 0.4
+n_ages <- length(mat)
+ages <- 1:n_ages
+
+# survivorship in unfished state (lo)
+lo <- numeric(n_ages)
+lo[1] <- 1
+for (i in 2:n_ages) lo[i] <- lo[i - 1] * exp(-M)
+lo[n_ages] <- lo[n_ages - 1] / (1 - exp(-M))
+
+# initial numbers at age from R0
+R0 <- 1000
+N <- R0 * lo
+
+# plot survivorship and initial numbers
+par(mfrow = c(1, 2), mar = c(5.1, 5.1, 2, 2)) # increase bottom and left margins
+plot(ages, lo, type = "b", ylab = expression(l[o]), xlab = "Age", cex.lab = 1.5)
+plot(ages, N,
+  type = "b", ylab = expression(N[init] == R[0] %.% l[o]),
+  xlab = "Age", cex.lab = 1.5
+)
+```
+
+- Can also initialize at a fished equilibrium or at terminal abundance at age estimated by a model 
+
+[Walters and Martell 2004]{.footerRight}
+
+:::
+
+## Age-structured model in log-space 
+
+::: {style="font-size:28px"}
+
+$$
+\log N_{t,a} =
+\begin{cases}
+\log \alpha + \log SSB_{t-1} - \log(1 + \beta \cdot SSB_{t-1}) + w_{t-1}, & a = 1 \\\\
+\log N_{t-1,a-1} - Z_{t-1,a-1}, & 2 \leq a < a_{\text{max}} \\\\
+\log \left( e^{\log N_{t,a_{\text{max}}}} + e^{\log N_{t-1,a_{\text{max}}} - Z_{t-1,a_{\text{max}}}} \right), & a = a_{\text{max}} 
+\end{cases}
+$$
+
+<br> 
+
+- This formulation: 
+    1. Improves numerical stability
+    2. Simplifies the recursion 
+    3. Easier computation 
+    
+![](images/grim.png){.absolute bottom="10%" right="0" width="30%"}
+
+:::
+
+## Simulation based $\mathrm{F_{MSY}}$: stochasticity 
+
+::: {style="font-size:28px"}
+
+- Recruitment variability is often a key source of uncertainty in fish populations
+- Ignored in the equilibrium reference point calculations :(
+
+```{R echo = F, eval = T, fig.width=5, fig.height=3.75, fig.align='center'}
+
+set.seed(42)
+# parameters
+n_years <- 1000
+alpha <- 2       # (max recruits per unit SSB)
+beta <- 0.1      # density dependence
+sdr <- 0.6        # standard deviation of recruitment (on log scale)
+
+# simulate SSB time series (can be from a model — here just a range)
+ssb <- runif(n_years, 0.1, 50)
+
+# simulate stochastic recruitment
+log_recruits <- log(alpha * ssb / (1 + beta * ssb)) + rnorm(n_years, 0, sdr)
+recruits <- exp(log_recruits)
+
+# transparent darkorchid
+orchid_trans <- rgb(153/255, 50/255, 204/255, alpha = 0.4)  # darkorchid with 40% opacity
+
+# plot
+plot(ssb, recruits, pch = 16, col = orchid_trans,
+     xlab = "Spawning stock biomass (SSB)", ylab = "Recruits",
+     cex.lab = 1.25)
+
+# mean curve
+ssb_seq <- seq(0, max(ssb), length.out = 500)
+mean_curve <- alpha * ssb_seq / (1 + beta * ssb_seq)
+lines(ssb_seq, mean_curve, col = "dodgerblue3", lwd = 3)
+
+```
+
+- $w_t \sim \text{Normal}(0, \sigma^2_{r} = 0.6)$ 
+[Beverton and Holt 1957]{.footerRight}
+
+:::
+
+## Simulation-based $\mathrm{F_{MSY}}$: roadmap
+
+::: {style="font-size:28px"}
+
+- We want to understand how recruitment **stochasticity** affects $F_{MSY}$  
+
+- Parameterize our age-structured model using Ro and recK
+
+- Simulate **population dynamics** over a long time horizon with random recruitment deviations  
+- Use **numerical optimization** to find the value of $F$ that maximizes average annual yield  
+
+- Repeat across many replicates with different $w_{t}$ sequences, and **summarize** the resulting distribution of $F_{MSY}$ estimates
+
+<br>
+
+- Be careful!
+    - $F_{\mathrm{MSY}_{sim}}$ is sometimes called $F_{\mathrm{MAY}}$ or even just $F_{\mathrm{MSY}}$ 
+    
+    - $F_{\mathrm{MSY}_{sim}}$ is not the same quantity as $F_{\mathrm{MSY}_{eq}}$ from last lecture, though both are sometimes called $F_{\mathrm{MSY}}$ (misery)
+
+[Hilborn and Walters 1992]{.footerRight}
+
+:::
+
+## The Saga of Lake Michigan Yellow Perch
+
+![](images/yep_wilberg.png){fig-align="center" width="1000" height="500"} 
+[Wilberg et al. 2005]{.footerRight}
+
+## The Saga of Lake Michigan Yellow Perch
+
+![](images/Wilberg_mortality.png){fig-align="center" width="950" height="550"} 
+[Wilberg et al. 2005]{.footerRight}
+
+
+## Exercise
+
+::: {style="font-size:28px"}
+
+- Go through `fmsy_sim_bh.R` as a group
+- Explore how recruitment stochasticity affects reference points 
+- Does your analysis lend any insights into the collapse of Lake Michigan Yellow Perch? 
+
+- Play!
+  1. recK and Ro
+  2. Ricker vs. BH (already coded for you)
+  3. Compare with equilibrium solutions
+  4. life history + other leading parameters
+    - Note that your data are based loosely off Lake Erie Yellow Perch 
+    
+- My advice: approach the problem with strategic and experimental thinking
+
+:::
+
+## References
+
+::: {style="font-size:25px"}
+-   Beverton and Holt 1957. On the dynamics of exploited fish populations.
+-   Botsford and Wickham 1979. Popuation cycles caused by inter-age, density-dependent mortality in young fish and crustaceans. In: *Cyclic phenomena in marine plants and animals*.
+-   Botsford 1981a. Optimal fishery policy for size-specific density-dependent population models. Journal of Mathematical Biology.
+-   Botsford 1981b. The effects of increased individual growth rates on depressed population size. American Naturalist.
+-   Hilborn and Walters 1992. Quantitative fisheries stock assessment: choice, dynamics, and uncertainty.
+-   Hilborn et al. 1995. Sustainable exploitation of renewable resources. Annual Review of Ecology and Systematics, Vol. 26, pp. 45-67.
+-   Hilborn et al. 2015. When is a fishery sustainable? CJFAS.
+-   Myers 2002. Recruitment: understanding density-dependence in fish populations.
+- Walters and Martell 2004. Fisheries ecology and management. 
+
+- Wilberg et al. 2005. Yellow perch dynamics in southwestern Lake Michigan 1986-2002. NAJFM. 
+
+:::

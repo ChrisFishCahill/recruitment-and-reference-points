@@ -99,7 +99,8 @@ yield_mat <- sapply(rep_ids, function(i) {
   sapply(f_seq, get_yield, wt = wt_example)
 })
 
-# plot all yield curves
+# plot several yield curves
+par(mfrow=c(1,3))
 matplot(exp(f_seq), -yield_mat,
   type = "l", lty = 1, lwd = 2,
   col = colors, xlab = "Fishing mortality (F)", ylab = "Yield",
