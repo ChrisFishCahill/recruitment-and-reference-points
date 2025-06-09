@@ -158,7 +158,7 @@ $$
 -   Why? [see methods in e.g., Hilborn and Walters 1992; Quinn and Deriso 1999]{.footerRight}
 :::
 
-## Equilibrium calculations in age-structured models 
+## Equilibrium calculations in age-structured models
 
 ::: {style="font-size:29px"}
 -   Botsford and Wickham (1979) and Botsford (1981a, 1981b) developed a clever way to do many of the important equilibrium calculations needed for an age-structured analysis of fish population responses to harvesting
@@ -443,20 +443,19 @@ $$
 ## [Equilibrium $F_{MSY}$ and $MSY$ calculations in age-structured fisheries models]{style="font-size:80%"}
 
 ::: {style="font-size:26px"}
-
 -   May help to think of it as a multi-step procedure:
 
 $$
  \begin{array}{c}\text{Estimate} \\\text{stock-recruitment &} \\\text{life history}  \\\text{parameters}  \end{array}  \Rightarrow  \begin{array}{c}\text{Compute} \\\text{equilibrium} \\\text{recruitment} \\R^*(F)  \end{array}  \Rightarrow  \begin{array}{c}\text{Calculate} \\\text{equilibrium} \\\text{yield} \\Y^*(F)  \end{array}  \Rightarrow  \begin{array}{c}\text{Solve for } F \text{ that} \\ \text{ maximizes } Y^*(F)  \end{array} 
 $$
 
-- Find the F that maximizes Y:
+-   Find the F that maximizes Y:
 
 $$
 F_{\text{MSY}} = F = \arg \max _{F} Y(F)
 $$
 
-- How might we solve this? 
+-   How might we solve this?
 
 [see methods Walters and Martell box 3.1]{.footerRight}
 :::
@@ -464,24 +463,28 @@ $$
 ## Proxy reference points
 
 ::: {style="font-size:29px"}
-
--   In the absence of stock recruitment, sometimes a fraction of So (i.e., 0.3-0.4So) is used as a proxy for MSY 
--   Depends on risk tolerance and biology 
--   What do you think? 
-
+-   In the absence of stock recruitment, sometimes a fraction of So (i.e., 0.3-0.4So) is used as a proxy for MSY
+-   Depends on risk tolerance and biology
+-   What do you think?
 :::
 
 ## Key caveats and known failure points
 
 ::: {style="font-size:29px"}
+-   Dome shaped vulnerability
+-   Interaction of vulnerability and maturity schedule
+-   High values of Fmsy
+    -   This can arise, but you want to know why this is happening
+-   Ricker vs. Beverton-Holt
+-   Bias correcting parameters: if you bias correct something and then plug it into another equation...
+-   Still an equilibrium answer!
+:::
 
--  Dome shaped vulnerability
--  Interaction of vulnerability and maturity schedule
--  High values of Fmsy
-    - This can arise, but you want to know why this is happening
--  Ricker vs. Beverton-Holt
-- Bias correcting parameters: if you bias correct something and then plug it into another equation...
-- Still an equilibrium answer!
+## Homework
+
+::: {style="font-size:29px"}
+
+- Derive Ricker $\alpha$ and $\beta$ in terms of Ro, sbro, and recK following the methods in this presentation
 
 :::
 
