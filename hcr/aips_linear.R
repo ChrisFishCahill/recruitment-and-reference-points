@@ -32,7 +32,7 @@ f <- function(par) {
   getAll(data, par)
   lrp <- exp(log_lrp)
   cslope <- exp(log_cslope)
-  beta <- 80 # as beta -> inf, approximation -> max(0,z)
+  beta <- 80 # as beta -> inf, approximation -> max(0,z) for softplus approx
 
   log_n <- matrix(-Inf, n_years, n_ages)
   ssb <- yield <- vul_bio <- numeric(n_years)
@@ -97,143 +97,76 @@ opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
 )
 rep_hara <- obj_hara$report()
 
-# extract fitted parameters
+# ----- helper function -----
+softplus <- function(z, beta) (1 / beta) * log1p(exp(beta * z))
+beta <- 80 # same as in model
+
+# fitted parameters
 lrp_y <- exp(opt_yield$par["log_lrp"])
 cslope_y <- exp(opt_yield$par["log_cslope"])
 lrp_h <- exp(opt_hara$par["log_lrp"])
 cslope_h <- exp(opt_hara$par["log_cslope"])
 
-# extract vulnerable biomass and Ft
+# simulation outputs
 vb_y <- rep_yield$vul_bio
 vb_h <- rep_hara$vul_bio
 Ft_y <- rep_yield$Ft
 Ft_h <- rep_hara$Ft
 
-# biomass range for drawing the fitted curve
-vb_seq <- seq(0.001, max(c(vb_y, vb_h)) * 1.1, length.out = 300)
+# Ut and TAC (simulation)
+Ut_y <- 1 - exp(-Ft_y)
+Ut_h <- 1 - exp(-Ft_h)
+TAC_y_obs <- Ut_y * vb_y[-n_years]
+TAC_h_obs <- Ut_h * vb_h[-n_years]
 
-# Fitted Ft curves
-delta_y <- log(vb_seq / lrp_y)
-Ft_y_fit <- cslope_y * plogis(10 * delta_y) * (1 - exp(-delta_y))
+# Fitted HCR predictions
+TAC_y_pred <- softplus(cslope_y * (vb_y[-n_years] - lrp_y), beta)
+Ft_y_pred <- TAC_y_pred / vb_y[-n_years]
+Ut_y_pred <- 1 - exp(-Ft_y_pred)
 
-delta_h <- log(vb_seq / lrp_h)
-Ft_h_fit <- cslope_h * plogis(10 * delta_h) * (1 - exp(-delta_h))
+TAC_h_pred <- softplus(cslope_h * (vb_h[-n_years] - lrp_h), beta)
+Ft_h_pred <- TAC_h_pred / vb_h[-n_years]
+Ut_h_pred <- 1 - exp(-Ft_h_pred)
 
-# TAC = Ft × vb
-TAC_y <- Ft_y_fit * vb_seq
-TAC_h <- Ft_h_fit * vb_seq
-
-# 2x2 layout (TAC on top, Ft on bottom)
+# Plot layout
 par(mfrow = c(2, 2), mar = c(4, 4.2, 2, 1))
 
 # 1. TAC vs vb (yield)
-plot(vb_seq, TAC_y,
-  type = "l", lwd = 2, col = "blue",
-  xlab = "Vulnerable biomass", ylab = "Total allowable catch (TAC)",
-  main = "TAC = Ft × vb (yield)"
+plot(vb_y[-n_years], TAC_y_obs,
+  type = "p", pch = 16, col = "blue", cex = 0.4,
+  xlab = "Vulnerable biomass (vb)",
+  ylab = "TAC = U × vb",
+  main = "TAC vs vb (Yield)"
 )
 abline(v = lrp_y, col = "blue", lty = 3)
 
 # 2. TAC vs vb (HARA)
-plot(vb_seq, TAC_h,
-  type = "l", lwd = 2, col = "red",
-  xlab = "Vulnerable biomass", ylab = "Total allowable catch (TAC)",
-  main = "TAC = Ft × vb (HARA)"
+plot(vb_h[-n_years], TAC_h_obs,
+  type = "p", pch = 16, col = "red", cex = 0.4,
+  xlab = "Vulnerable biomass (vb)",
+  ylab = "TAC = U × vb",
+  main = "TAC vs vb (HARA)"
 )
 abline(v = lrp_h, col = "red", lty = 3)
 
-# 3. Ft vs vb (yield)
+# 3. Ft vs vb (Yield)
 plot(vb_y[-n_years], Ft_y,
-  pch = 16, col = "blue", cex = 0.4,
-  xlab = "Vulnerable biomass", ylab = "Fishing mortality Ft",
-  main = "Max yield (upow = 1)"
+  type = "p", pch = 16, col = "blue", cex = 0.4,
+  xlab = "Vulnerable biomass (vb)",
+  ylab = "Fishing mortality (Ft)",
+  main = "Ft vs vb (Yield)"
 )
 abline(v = lrp_y, col = "blue", lty = 3)
 
 # 4. Ft vs vb (HARA)
 plot(vb_h[-n_years], Ft_h,
-  pch = 16, col = "red", cex = 0.4,
-  xlab = "Vulnerable biomass", ylab = "Fishing mortality Ft",
-  ylim = c(0, max(Ft_y, Ft_h)),
-  main = "HARA utility (upow = 0.6)"
+  type = "p", pch = 16, col = "red", cex = 0.4,
+  xlab = "Vulnerable biomass (vb)",
+  ylab = "Fishing mortality (Ft)",
+  main = "Ft vs vb (HARA)",
+  ylim = c(0, max(Ft_y, Ft_h))
 )
 abline(v = lrp_h, col = "red", lty = 3)
-
-# ----- plot showing why Ft is nonlinear from linear TAC -----
-
-lrp_plot <- exp(opt_yield$par["log_lrp"])
-cslope_plot <- exp(opt_yield$par["log_cslope"])
-vb_seq <- seq(0.01, 2, length.out = 500)
-TAC <- cslope_plot * pmax(0, vb_seq - lrp_plot)
-Ft_implied <- TAC / vb_seq
-
-par(mfrow = c(2, 1), mar = c(4, 4.2, 2, 1))
-
-plot(vb_seq, TAC,
-  type = "l", lwd = 2, col = "black",
-  xlab = "Vulnerable biomass (vb)", ylab = "Total allowable catch (TAC)",
-  main = "TAC = c × (vb − LRP) is linear"
-)
-abline(v = lrp_plot, col = "gray", lty = 3)
-text(lrp_plot + 0.1, max(TAC) * 0.8, "LRP", col = "gray")
-
-plot(vb_seq, Ft_implied,
-  type = "l", lwd = 2, col = "blue",
-  xlab = "Vulnerable biomass (vb)", ylab = "Fishing mortality (Ft)",
-  main = "Ft = TAC / vb is nonlinear"
-)
-abline(v = lrp_plot, col = "gray", lty = 3)
-text(lrp_plot + 0.1, max(Ft_implied) * 0.8, "LRP", col = "gray")
-
-# ----- plot dynamics -----
-
-years <- 920:999
-t_seq <- years - 919
-
-Ft_y_sub <- rep_yield$Ft[years]
-Ft_h_sub <- rep_hara$Ft[years]
-vb_y_sub <- rep_yield$vul_bio[years]
-vb_h_sub <- rep_hara$vul_bio[years]
-yield_y_sub <- rep_yield$yield[years]
-yield_h_sub <- rep_hara$yield[years]
-
-par(mfrow = c(3, 1), mar = c(4, 4.2, 2, 1))
-
-plot(t_seq, Ft_y_sub,
-  type = "l", lwd = 2, col = "blue",
-  ylab = "Fishing mortality (F)", xlab = "Year",
-  main = "F(t) through time"
-)
-lines(t_seq, Ft_h_sub, col = "red", lwd = 2, lty = 2)
-legend("topleft",
-  legend = c("Max yield", "HARA utility"),
-  col = c("blue", "red"), lwd = 2, lty = c(1, 2), bty = "n"
-)
-
-plot(t_seq, vb_y_sub,
-  type = "l", lwd = 2, col = "blue", ylim = c(0, 3),
-  ylab = "Vulnerable biomass", xlab = "Year",
-  main = "Biomass through time"
-)
-lines(t_seq, vb_h_sub, col = "red", lwd = 2, lty = 2)
-legend("topleft",
-  legend = c("Max yield", "HARA utility"),
-  col = c("blue", "red"), lwd = 2, lty = c(1, 2), bty = "n"
-)
-
-plot(t_seq, yield_y_sub,
-  type = "l", lwd = 2, col = "blue",
-  ylab = "Yield", xlab = "Year",
-  main = "Yield achieved through time"
-)
-lines(t_seq, yield_h_sub, col = "red", lwd = 2, lty = 2)
-legend("topleft",
-  legend = c("Max yield", "HARA utility"),
-  col = c("blue", "red"), lwd = 2, lty = c(1, 2), bty = "n"
-)
-
-cat("Mean yield (yield-maximizing):", -opt_yield$objective, "\n")
-cat("Mean HARA utility:", -opt_hara$objective, "\n")
 
 #----------------------------
 # Some stuff to discuss
@@ -241,5 +174,5 @@ cat("Mean HARA utility:", -opt_hara$objective, "\n")
 # Parama, Walters, Hilborn, more Walters, etc.
 # Gives you a means to manage a dynamic fishery via a feedback policy
 # Which policy is more sustainable?
-# Could you do this with more complex objective functions? yes, but likely requires
+# Could you do this with more complex objective functions? Yes, but may require
 # simulation (like MSE) or something similar, also...
