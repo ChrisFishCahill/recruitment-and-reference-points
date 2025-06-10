@@ -102,6 +102,7 @@ vbo <- sum(ninit * wa * vul)
 crash_years <- seq(100, n_years, by = 100)
 crash_F_indices <- crash_years - 1
 keep <- 2:(n_years - 50)
+burn_idx <- which((keep - 1) <= 10)
 crash_F_indices <- crash_F_indices[crash_F_indices %in% (keep - 1)]
 
 vb_yield <- rep_yield$vul_bio[keep - 1]
@@ -125,10 +126,11 @@ points(vb_yield[highlight_idx], Ft_y[highlight_idx],
   pch = 4,
   col = "blue", lwd = 1.2
 )
+points(vb_yield[burn_idx], Ft_y[burn_idx], pch = 4, col = "red", cex = 0.6) # burn-in
 abline(v = vbo, col = "black", lty = 2)
 legend("topleft",
-  legend = "Crash-year Ft", pch = 4,
-  col = "blue", bty = "n"
+  legend = c("Crash-year Ft", "Burn-in"), pch = 4,
+  col = c("blue", "red"), bty = "n"
 )
 
 # Panel 2: Absolute scale, HARA
@@ -142,10 +144,11 @@ points(vb_hara[highlight_idx], Ft_h[highlight_idx],
   pch = 4,
   col = "blue", lwd = 1.2
 )
+points(vb_hara[burn_idx], Ft_h[burn_idx], pch = 4, col = "red", cex = 0.6) # burn-in
 abline(v = vbo, col = "black", lty = 2)
 legend("topleft",
-  legend = "Crash-year Ft", pch = 4,
-  col = "blue", bty = "n"
+  legend = c("Crash-year Ft", "Burn-in"), pch = 4,
+  col = c("blue", "red"), bty = "n"
 )
 
 # Panel 3: Relative scale, yield
@@ -159,6 +162,10 @@ points(vb_yield[highlight_idx] / vbo, Ft_y[highlight_idx],
   pch = 4,
   col = "blue", lwd = 1.2
 )
+points(vb_yield[burn_idx] / vbo, Ft_y[burn_idx],
+  pch = 4, col = "red",
+  cex = 0.6
+) # burn-in
 abline(v = 1, col = "black", lty = 2)
 
 # Panel 4: Relative scale, HARA
@@ -172,6 +179,10 @@ points(vb_hara[highlight_idx] / vbo, Ft_h[highlight_idx],
   pch = 4,
   col = "blue", lwd = 1.2
 )
+points(vb_hara[burn_idx] / vbo, Ft_hara[burn_idx],
+  pch = 4, col = "red",
+  cex = 0.6
+) # burn-in
 abline(v = 1, col = "black", lty = 2)
 
 # Panel 5: Yield-maximizing (U space)
@@ -184,6 +195,12 @@ plot(vb_yield / vbo, Ut_y,
 points(vb_yield[highlight_idx] / vbo, Ut_y[highlight_idx],
   pch = 4, col = "blue", lwd = 1.2
 )
+points(vb_yield[burn_idx] / vbo, Ut_y[burn_idx],
+  pch = 4, col = "red",
+  cex = 0.6
+) # burn-in
+abline(v = 1, col = "black", lty = 2)
+
 abline(v = 1, col = "black", lty = 2)
 abline(h = 0.5, col = "black", lty = 2)
 
@@ -197,6 +214,11 @@ plot(vb_hara / vbo, Ut_h,
 points(vb_hara[highlight_idx] / vbo, Ut_h[highlight_idx],
   pch = 4, col = "blue", lwd = 1.2
 )
+points(vb_hara[burn_idx] / vbo, Ut_h[burn_idx],
+  pch = 4,
+  col = "red", cex = 0.6
+) # burn-in
+
 abline(v = 1, col = "black", lty = 2)
 abline(h = 0.5, col = "black", lty = 2)
 
