@@ -102,7 +102,7 @@ vbo <- sum(ninit * wa * vul)
 crash_years <- seq(100, n_years, by = 100)
 crash_F_indices <- crash_years - 1
 keep <- 2:(n_years - 50)
-burn_idx <- which((keep - 1) <= 10)
+burn_idx <- which((keep - 1) <= 10) # first 10 years as burn in 
 crash_F_indices <- crash_F_indices[crash_F_indices %in% (keep - 1)]
 
 vb_yield <- rep_yield$vul_bio[keep - 1]
@@ -217,6 +217,43 @@ points(vb_hara[highlight_idx] / vbo, Ut_h[highlight_idx],
 points(vb_hara[burn_idx] / vbo, Ut_h[burn_idx],
   pch = 4,
   col = "red", cex = 0.6
+) # burn-in
+
+abline(v = 1, col = "black", lty = 2)
+abline(h = 0.5, col = "black", lty = 2)
+
+
+#------------------------------------
+# Recommended TAC vs. vulbio
+
+Ut_y <- 1 - exp(-Ft_y)
+plot(vb_yield, Ut_y*vb_yield,
+     pch = 19, col = "grey50", cex = 0.6,
+     xlab = "Vulnerable biomass", ylab = "Total Allowable Catch (TAC)",
+     main = "Yield maximizing policy",
+)
+points(vb_yield[highlight_idx], Ut_y[highlight_idx]*vb_yield[highlight_idx],
+       pch = 4, col = "blue", lwd = 1.2
+)
+points(vb_yield[burn_idx], Ut_y[burn_idx]* vb_yield[burn_idx],
+       pch = 4, col = "red",
+       cex = 0.6
+) # burn-in
+abline(v = 1, col = "black", lty = 2)
+abline(h = 0.5, col = "black", lty = 2)
+
+Ut_h <- 1 - exp(-Ft_h)
+plot(vb_hara, Ut_h*vb_hara,
+     pch = 19, col = "grey50", cex = 0.6,
+     xlab = "Vulnerable biomass", ylab = "Total Allowable Catch (TAC)",
+     main = "Risk-averse policy", ylim = c(0, 1), xlim = c(0, 1)
+)
+points(vb_hara[highlight_idx] / vbo, Ut_h[highlight_idx],
+       pch = 4, col = "blue", lwd = 1.2
+)
+points(vb_hara[burn_idx], Ut_h[burn_idx],
+       pch = 4,
+       col = "red", cex = 0.6
 ) # burn-in
 
 abline(v = 1, col = "black", lty = 2)
