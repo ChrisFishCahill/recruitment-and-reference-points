@@ -205,12 +205,11 @@ abline(v = 3, col = "darkorchid2", lty = 2, lwd = 2)
 ## 1970s-1980s cont'd: developments in age-structured models
 
 ::: {style="font-size:28px"}
-- Lou Botsford (1981; 1983) derived a mathematical solution to equilibrium recruitment calculations in standard age-structured fish population models
-- Botsford incidence functions, which refer to the rate at which events (like spawner biomass or yield) occur per recruit
-- Greatly simplified equilibrium and simulation-based calculations in age-structured models
+-   Lou Botsford (1981; 1983) derived a mathematical solution to equilibrium recruitment calculations in standard age-structured fish population models
+-   Botsford incidence functions, which refer to the rate at which events (like spawner biomass or yield) occur per recruit
+-   Greatly simplified equilibrium and simulation-based calculations in age-structured models
 
 [Walters and Martell 2004]{.footerRight}
-
 :::
 
 ## Reference points: what are they
@@ -341,33 +340,29 @@ text(1.6, 1.6, "Not overfished,\noverfishing", cex = 0.85)
 ## Summary
 
 ::: {style="font-size:30px"}
-
 -   Sustainability assessments typically require the determination of one or more reference points
--   Feedback policies difficult to compute but very powerful and provide much of the theoretical foundation for sustainable harvesting in dynamic environments 
-- There are many types of reference points, but biological reference points are aspects of models that analysts can identify objectively
-- Many modern harvest control rules (i.e., feedback policies) such as those recommended by NOAA or DFO require these types of reference points as inputs 
-  - Most of the class is about calculating these types of reference points 
-- Group discussion about harvest management practices in the Great Lakes region
-
+-   Feedback policies difficult to compute but very powerful and provide much of the theoretical foundation for sustainable harvesting in dynamic environments
+-   There are many types of reference points, but biological reference points are aspects of models that analysts can identify objectively
+-   Many modern harvest control rules (i.e., feedback policies) such as those recommended by NOAA or DFO require these types of reference points as inputs
+    -   Most of the class is about calculating these types of reference points
+-   Group discussion about harvest management practices in the Great Lakes region
 :::
 
-## Road map for the next few lectures 
+## Road map for the next few lectures
 
 ::: {style="font-size:30px"}
-
-- Mathematical foundations and the ecological basis of sustainable harvesting
-- Calculating equilibrium Fmsy/MSY for an age-structured model
-- Calculating simulation based Fmsy/MSY for an age-structured model
-- The omniscient fishery manager and maximizing yield vs. risk-averse utility
-- Approximation of feedback in policy space
-
+-   Mathematical foundations and the ecological basis of sustainable harvesting
+-   Calculating equilibrium Fmsy/MSY for an age-structured model
+-   Calculating simulation based Fmsy/MSY for an age-structured model
+-   The omniscient fishery manager and maximizing yield vs. risk-averse utility
+-   Approximation of feedback in policy space
 :::
 
 ## References
 
 ::: {style="font-size:25px"}
 -   Botsford 1981. Optimal fishery policy for size-specific density-dependent population models. J. Math. Biol. 12:265-293.
--   Botsford and Johnston. 1983. Effort dymamics of the northern California Dungeness crab (*Cancer magister*) fishery. Canadian Journal of Fisheries and Aquatic Sciences 40:337-346. 
+-   Botsford and Johnston. 1983. Effort dymamics of the northern California Dungeness crab (*Cancer magister*) fishery. Canadian Journal of Fisheries and Aquatic Sciences 40:337-346.
 -   Beverton and Holt 1957. On the dynamics of exploited fish populations.
 -   DFO Precautionary Approach. 2009. <https://www.dfo-mpo.gc.ca/reports-rapports/regs/sff-cpd/precaution-eng.htm>
 -   Hilborn et al. 1995. Sustainable exploitation of renewable resources. Annual Review of Ecology and Systematics, Vol. 26, pp. 45-67
@@ -376,7 +371,6 @@ text(1.6, 1.6, "Not overfished,\noverfishing", cex = 0.85)
 -   Maunder and Aires-da-Silva 2011. Evaluation of the Kobe plot and strategy matrix and their applicaiton to Tuna in the Eastern Pacific Ocean. Inter-American Tropical Tuna Commission Scientific Advisory Meeting.
 -   Myers 2002. Recruitment: understanding density-dependence in fish populations.
 -   Quinn and Deriso 1999. Quantitative Fisheries Dynamics. Chapter 11.
-
 :::
 
 ## References
