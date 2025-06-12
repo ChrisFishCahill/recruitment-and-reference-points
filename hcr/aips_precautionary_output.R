@@ -59,16 +59,13 @@ f <- function(par) {
     soft_ramp <- (1 / beta) * log(1 + exp(beta * ramp))
     u_target <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
 
-    # step 2: convert U_target to Ftarget
-    Ftarget <- -log(1 - u_target)
+    # step 2: compute TAC from observed vb and Ftarget
+    tac <- vb_obs * exp(-M / 2) * u_target
 
-    # step 3: compute TAC from observed vb and Ftarget
-    tac <- vb_obs * exp(-M / 2) * (1 - exp(-Ftarget))
-
-    # step 4: compute implied U from TAC and true vb
+    # step 3: compute implied U from TAC and true vb
     u_implied <- tac / (vb_true * exp(-M / 2))
 
-    # step 5: apply implementation constraint UMAX via soft cap
+    # step 4: apply implementation constraint UMAX via soft cap
     u_realized <- -1 / beta * log(exp(-beta * u_implied) + exp(-beta * UMAX))
 
     # final Ft and Ut used in dynamics
