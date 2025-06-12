@@ -101,7 +101,6 @@ f <- function(par) {
   -mean(yield^upow)
 }
 
-
 data <- list(
   wt = wt, vul = vul, wa = wa, mat = mat, M = M,
   ln_alpha = ln_alpha, br = br, ninit = ninit,
