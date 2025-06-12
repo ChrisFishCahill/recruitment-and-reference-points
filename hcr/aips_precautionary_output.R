@@ -27,50 +27,55 @@ sdr <- 0.6
 set.seed(1)
 wt <- rnorm(n_years - 1, 0, sdr)
 
-sigma_obs <- 0.2  # observation error SD
+sigma_obs <- 0.2 # observation error SD
+UMAX <- 0.9 # implementation cap on achievable U
+sigma_obs <- 0.2 # observation error SD
+beta <- 80 # softplus approximation
 
 # objective function with precautionary HCR and output control logic
 f <- function(par) {
   getAll(data, par)
   lrp <- exp(log_lrp)
   btrigger <- exp(log_btrigger)
-  ucap <- 1 / (1 + exp(-logit_ucap))  # logit scale ensures 0 < ucap < 1
-  beta <- 80
-  
+  ucap <- 1 / (1 + exp(-logit_ucap)) # HCR cap on target U
+
   log_n <- matrix(-Inf, n_years, n_ages)
   ssb <- yield <- vul_bio <- numeric(n_years)
   Ft <- Ut <- numeric(n_years - 1)
-  
+
   log_n[1, ] <- log(ninit)
   ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
   vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
-  
+
   for (t in 2:n_years) {
     vb_true <- vul_bio[t - 1]
-    
-    # step 0: add observation error to vb
+
+    # step 0: observe biomass with error
     vb_obs <- vb_true * exp(rnorm(1, 0, sigma_obs))
-    
-    # step 1: ramp and soft ramp using observed vb
+
+    # step 1: target U from HCR using observed vb
     slope <- ucap / (btrigger - lrp)
     ramp <- slope * (vb_obs - lrp)
     soft_ramp <- (1 / beta) * log(1 + exp(beta * ramp))
     u_target <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
-    
-    # step 2: tac from observed vb and Ftarget
+
+    # step 2: convert U_target to Ftarget
     Ftarget <- -log(1 - u_target)
+
+    # step 3: compute TAC from observed vb and Ftarget
     tac <- vb_obs * exp(-M / 2) * (1 - exp(-Ftarget))
-    
-    # step 3: implied U from TAC and true vb
+
+    # step 4: compute implied U from TAC and true vb
     u_implied <- tac / (vb_true * exp(-M / 2))
-    
-    # step 4: soft cap at ucap
-    u_realized <- -1 / beta * log(exp(-beta * u_implied) + exp(-beta * ucap))
-    
-    # step 5: final F used in dynamics
+
+    # step 5: apply implementation constraint UMAX via soft cap
+    u_realized <- -1 / beta * log(exp(-beta * u_implied) + exp(-beta * UMAX))
+
+    # final Ft and Ut used in dynamics
     Ut[t - 1] <- u_realized
     Ft[t - 1] <- -log(1 - u_realized)
-    
+
+    # population dynamics
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
     for (a in 2:n_ages) {
@@ -88,13 +93,14 @@ f <- function(par) {
     vul_bio[t] <- sum(n * wa * vul)
     yield[t] <- sum(n * wa * Ft[t - 1] * vul / Zt * (1 - exp(-Zt)))
   }
-  
+
   REPORT(Ut)
   REPORT(yield)
   REPORT(vul_bio)
   REPORT(Ft)
   -mean(yield^upow)
 }
+
 
 data <- list(
   wt = wt, vul = vul, wa = wa, mat = mat, M = M,
@@ -259,4 +265,3 @@ legend("topright",
   legend = c("Yield", "HARA"),
   col = c("dodgerblue3", "darkorchid3"), pch = c(16, 1), lty = 1, bty = "n"
 )
-
