@@ -16,6 +16,7 @@ Ro <- 10
 recK <- 5
 sbro <- sum(lo * mat * wa)
 alpha <- recK / sbro # look here
+ln_alpha <- log(alpha)
 br <- (alpha * sbro - 1) / (Ro * sbro) # look here
 ninit <- Ro * lo
 
@@ -135,3 +136,4 @@ hist(msy_vals,
 
 # summarize the median +/- 90% uncertainty interval of Msy
 quantile(msy_vals, c(0.05, 0.5, 0.95))
+
