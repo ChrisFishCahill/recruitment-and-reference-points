@@ -54,7 +54,7 @@ get_yield <- function(logF, wt) {
       exp(log_n[t + 1, n_ages]) +
         exp(log_n[t, n_ages]) * exp(-Z[t, n_ages])
     )
-    log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - br * ssb[t] + wt[t]
+    log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - log(br * ssb[t]) + wt[t]
   }
   -mean(yield)
 }
