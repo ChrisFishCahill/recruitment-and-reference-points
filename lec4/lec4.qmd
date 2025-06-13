@@ -118,24 +118,8 @@ Feedback control (dynamic fishing policies), which has direct linkages to adapti
 -   These results often come from dynamic programming approaches, where the optimal action is derived by solving a recursive optimization problem. Many such solutions recommend adjusting harvest as a **simple function of biomass or abundance**\
     (e.g., Clark 1974; Clark and De Pree 1979; Mangel 1984; Moxnes 2002).
 
--   This is surprising—because complex systems might seem to require complex strategies—but much of the work from the 1970s and 1980s showed that **simple feedback policies** often perform well or are even optimal (e.g., Walters 1986; Hilborn and Walters 1992).
-
--   This body of work forms a large part of the theoretical basis of the *de facto* precautionary rules used by e.g., NOAA, DFO, and others.
 :::
 
-## [Harvesting theory, dynamic programming, and optimal solutions]{style="font-size:80%"}
-
-::: {style="font-size:27px"}
--   A large body of theoretical work on optimal harvesting strategies for dynamic populations shows a consistent result: **optimal policies tend to reduce harvest when population size declines, and increase it when population size grows** (e.g., Walters 1975; Walters and Hilborn 1978).
-
--   These results often come from dynamic programming approaches, where the optimal action is derived by solving a recursive optimization problem. Many such solutions recommend adjusting harvest as a **simple function of biomass or abundance**\
-    (e.g., Clark 1974; Clark and De Pree 1979; Mangel 1984; Moxnes 2002).
-
--   This is surprising—because complex systems might seem to require complex strategies—but much of the work from the 1970s and 1980s showed that **simple feedback policies** often perform well or are even optimal (e.g., Walters 1986; Hilborn and Walters 1992).
-
--   This body of work forms a large part of the theoretical basis of the *de facto* precautionary rules used by e.g., NOAA, DFO, and others.
-    - Why are they precautionary? 
-:::
 
 ## Feedback policy design: the autopilot analogy
 
@@ -265,11 +249,10 @@ Feedback control (dynamic fishing policies), which has direct linkages to adapti
 -   In R
 
 ```{R echo = T, eval = T}
-get_upow <- function(X, H) {
-  # X = guaranteed catch
-  # H = high value of 50/50 gamble (other outcome is 0)
-  log(0.5) / (log(X) - log(H))
-}
+
+# X = guaranteed catch, H = high value of 50-50 gamble where
+# (other outcome = 0)
+get_upow <- function(X, H) log(0.5) / (log(X) - log(H))
 
 # Example: Cahill is indifferent between 2 guaranteed and 
 # a 50/50 gamble between 0 or 10 walleye
