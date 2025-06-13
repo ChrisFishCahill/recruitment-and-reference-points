@@ -41,20 +41,18 @@ $$
 
 Where:
 
-$N_{1,a} = N_{\text{init},a}$  
-  
-$SSB_1 = \sum_a N_{1,a} \cdot m_a \cdot w_a$  
-  
-$w_t \sim \text{Normal}(0, \sigma^2_{r})$  
-  
-$Z_{t,a} = F \cdot v_a + M$  
-  
-$SSB_t = \sum_a N_{t,a} \cdot m_a \cdot w_a$  
-  
+$N_{1,a} = N_{\text{init},a}$
+
+$SSB_1 = \sum_a N_{1,a} \cdot m_a \cdot w_a$
+
+$w_t \sim \text{Normal}(0, \sigma^2_{r})$
+
+$Z_{t,a} = F \cdot v_a + M$
+
+$SSB_t = \sum_a N_{t,a} \cdot m_a \cdot w_a$
+
 $Y_t = \sum_a N_{t,a} \cdot w_a \cdot \frac{F \cdot v_a}{Z_{t,a}} \cdot \left(1 - e^{-Z_{t,a}} \right)$
-
 :::
-
 
 ## Initializing an age-structured model
 
@@ -98,11 +96,11 @@ plot(ages, N,
 
 ::: {style="font-size:28px"}
 $$
-\log N_{t,a} =
+\log N_{t+1,a} =
 \begin{cases}
-\log \alpha + \log SSB_{t-1} - \log(1 + \beta \cdot SSB_{t-1}) + w_{t-1}, & a = 1 \\\\
-\log N_{t-1,a-1} - Z_{t-1,a-1}, & 2 \leq a < a_{\text{max}} \\\\
-\log \left( e^{\log N_{t,a_{\text{max}}}} + e^{\log N_{t-1,a_{\text{max}}} - Z_{t-1,a_{\text{max}}}} \right), & a = a_{\text{max}} 
+\log \alpha + \log SSB_t - \log(1 + \beta \cdot SSB_t) + w_t, & a = 1 \\\\
+\log N_{t,a-1} - Z_{t,a-1}, & 2 \le a < a_{\text{max}} \\\\
+\log \left( e^{\log N_{t,a_{\text{max}}-1} - Z_{t,a_{\text{max}}-1}} + e^{\log N_{t,a_{\text{max}}} - Z_{t,a_{\text{max}}}} \right), & a = a_{\text{max}} 
 \end{cases}
 $$
 
