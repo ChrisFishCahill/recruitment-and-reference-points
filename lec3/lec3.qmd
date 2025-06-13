@@ -27,16 +27,15 @@ author: Christopher L. Cahill <br> Associate Director
 
 [*The Good, The Bad, and the Ugly* of this lecture]{.footerLeft}
 
-## Age-structured population dynamics 
+## Age-structured population dynamics (log scale)
 
 ::: {style="font-size:24px"}
-
 $$
-N_{t,a} =
+\log N_{t+1,a} =
 \begin{cases}
-\displaystyle \frac{\alpha \cdot SSB_{t-1}}{1 + \beta \cdot SSB_{t-1}} \cdot e^{w_{t-1}}, & a = 1 \\\\
-N_{t-1,a-1} \cdot e^{-Z_{t-1,a-1}}, & 2 \leq a < a_{\text{max}} \\\\
-N_{t,a_{\text{max}}} + N_{t-1,a_{\text{max}}} \cdot e^{-Z_{t-1,a_{\text{max}}}}, & a = a_{\text{max}} \text{ (plus group)}
+\log \alpha + \log SSB_t - \log(1 + \beta \cdot SSB_t) + w_t, & a = 1 \\\\
+\log N_{t,a-1} - Z_{t,a-1}, & 2 \le a < a_{\text{max}} \\\\
+\log \left( e^{\log N_{t,a_{\text{max}}-1} - Z_{t,a_{\text{max}}-1}} + e^{\log N_{t,a_{\text{max}}} - Z_{t,a_{\text{max}}}} \right), & a = a_{\text{max}} \text{ (plus group)}
 \end{cases}
 $$
 
@@ -56,12 +55,12 @@ $Y_t = \sum_a N_{t,a} \cdot w_a \cdot \frac{F \cdot v_a}{Z_{t,a}} \cdot \left(1 
 
 :::
 
-## Initializing an age-structured model 
+
+## Initializing an age-structured model
 
 ::: {style="font-size:30px"}
-
-- Botsford incidence functions and survivorship vectors ($l_o$, $l_x$) make it easy to initialize a population dynamics model 
-- In an unfished population, the age structure is simply $R_0 \cdot l_o$
+-   Botsford incidence functions and survivorship vectors ($l_o$, $l_x$) make it easy to initialize a population dynamics model
+-   In an unfished population, the age structure is simply $R_0 \cdot l_o$
 
 ```{R echo = F, eval = T, fig.width=12, fig.height=4}
 # life history vectors
@@ -90,16 +89,14 @@ plot(ages, N,
 )
 ```
 
-- Can also initialize at a fished equilibrium or at terminal abundance at age estimated by a model 
+-   Can also initialize at a fished equilibrium or at terminal abundance at age estimated by a model
 
 [Walters and Martell 2004]{.footerRight}
-
 :::
 
-## Age-structured model in log-space 
+## Age-structured model in log-space
 
 ::: {style="font-size:28px"}
-
 $$
 \log N_{t,a} =
 \begin{cases}
@@ -109,23 +106,21 @@ $$
 \end{cases}
 $$
 
-<br> 
+<br>
 
-- This formulation: 
-    1. Improves numerical stability
-    2. Simplifies the recursion 
-    3. Easier computation 
-    
+-   This formulation:
+    1.  Improves numerical stability
+    2.  Simplifies the recursion
+    3.  Easier computation
+
 ![](images/grim.png){.absolute bottom="10%" right="0" width="30%"}
-
 :::
 
-## Simulation based $\mathrm{F_{MSY}}$: stochasticity 
+## Simulation based $\mathrm{F_{MSY}}$: stochasticity
 
 ::: {style="font-size:28px"}
-
-- Recruitment variability is often a key source of uncertainty in fish populations
-- Ignored in the equilibrium reference point calculations :(
+-   Recruitment variability is often a key source of uncertainty in fish populations
+-   Ignored in the equilibrium reference point calculations :(
 
 ```{R echo = F, eval = T, fig.width=5, fig.height=3.75, fig.align='center'}
 
@@ -158,78 +153,81 @@ lines(ssb_seq, mean_curve, col = "dodgerblue3", lwd = 3)
 
 ```
 
-- $w_t \sim \text{Normal}(0, \sigma^2_{r} = 0.6)$ 
-[Beverton and Holt 1957]{.footerRight}
-
+-   $w_t \sim \text{Normal}(0, \sigma^2_{r} = 0.6)$ [Beverton and Holt 1957]{.footerRight}
 :::
 
 ## Simulation-based $\mathrm{F_{MSY}}$: roadmap
 
 ::: {style="font-size:28px"}
+-   We want to understand how recruitment **stochasticity** affects $F_{MSY}$
 
-- We want to understand how recruitment **stochasticity** affects $F_{MSY}$  
+-   Parameterize our age-structured model using Ro and recK
 
-- Parameterize our age-structured model using Ro and recK
+-   Simulate **population dynamics** over a long time horizon with random recruitment deviations\
 
-- Simulate **population dynamics** over a long time horizon with random recruitment deviations  
-- Use **numerical optimization** to find the value of $F$ that maximizes average annual yield  
+-   Use **numerical optimization** to find the value of $F$ that maximizes average annual yield
 
-- Repeat across many replicates with different $w_{t}$ sequences, and **summarize** the resulting distribution of $F_{MSY}$ estimates
+-   Repeat across many replicates with different $w_{t}$ sequences, and **summarize** the resulting distribution of $F_{MSY}$ estimates
 
 <br>
 
-- Be careful!
-    - $F_{\mathrm{MSY}_{sim}}$ is sometimes called $F_{\mathrm{MAY}}$ or even just $F_{\mathrm{MSY}}$ 
-    
-    - $F_{\mathrm{MSY}_{sim}}$ is not the same quantity as $F_{\mathrm{MSY}_{eq}}$ from last lecture, though both are sometimes called $F_{\mathrm{MSY}}$ (misery)
+-   Be careful!
+    -   $F_{\mathrm{MSY}_{sim}}$ is sometimes called $F_{\mathrm{MAY}}$ or even just $F_{\mathrm{MSY}}$
+
+    -   $F_{\mathrm{MSY}_{sim}}$ is not the same quantity as $F_{\mathrm{MSY}_{eq}}$ from last lecture, though both are sometimes called $F_{\mathrm{MSY}}$ (misery)
 
 [Hilborn and Walters 1992]{.footerRight}
-
 :::
 
 ## The Saga of Lake Michigan Yellow Perch
 
-![](images/yep_wilberg.png){fig-align="center" width="1000" height="500"} 
-[Wilberg et al. 2005]{.footerRight}
+![](images/yep_wilberg.png){fig-align="center" width="1000" height="500"} [Wilberg et al. 2005]{.footerRight}
 
 ## The Saga of Lake Michigan Yellow Perch
 
-![](images/Wilberg_mortality.png){fig-align="center" width="950" height="550"} 
-[Wilberg et al. 2005]{.footerRight}
-
+![](images/Wilberg_mortality.png){fig-align="center" width="950" height="550"} [Wilberg et al. 2005]{.footerRight}
 
 ## Exercise
 
 ::: {style="font-size:28px"}
+-   Go through `fmsy_sim_bh.R` as a group
 
-- Go through `fmsy_sim_bh.R` as a group
-- Explore how recruitment stochasticity affects reference points 
-- Does your analysis lend any insights into the collapse of Lake Michigan Yellow Perch? 
+-   Explore how recruitment stochasticity affects reference points
 
-- Play!
-  1. recK and Ro
-  2. Ricker vs. BH (already coded for you)
-  3. Compare with equilibrium solutions
-  4. life history + other leading parameters
-    - Note that your data are based loosely off Lake Erie Yellow Perch 
-    
-- My advice: approach the problem with strategic and experimental thinking
+-   Does your analysis lend any insights into the collapse of Lake Michigan Yellow Perch?
 
+-   Play!
+
+    1.  recK and Ro
+    2.  Ricker vs. BH (already coded for you)
+    3.  Compare with equilibrium solutions
+    4.  life history + other leading parameters
+
+    -   Note that your data are based loosely off Lake Erie Yellow Perch
+
+-   My advice: approach the problem with strategic and experimental thinking
 :::
 
 ## References
 
 ::: {style="font-size:25px"}
 -   Beverton and Holt 1957. On the dynamics of exploited fish populations.
+
 -   Botsford and Wickham 1979. Popuation cycles caused by inter-age, density-dependent mortality in young fish and crustaceans. In: *Cyclic phenomena in marine plants and animals*.
+
 -   Botsford 1981a. Optimal fishery policy for size-specific density-dependent population models. Journal of Mathematical Biology.
+
 -   Botsford 1981b. The effects of increased individual growth rates on depressed population size. American Naturalist.
+
 -   Hilborn and Walters 1992. Quantitative fisheries stock assessment: choice, dynamics, and uncertainty.
+
 -   Hilborn et al. 1995. Sustainable exploitation of renewable resources. Annual Review of Ecology and Systematics, Vol. 26, pp. 45-67.
+
 -   Hilborn et al. 2015. When is a fishery sustainable? CJFAS.
+
 -   Myers 2002. Recruitment: understanding density-dependence in fish populations.
-- Walters and Martell 2004. Fisheries ecology and management. 
 
-- Wilberg et al. 2005. Yellow perch dynamics in southwestern Lake Michigan 1986-2002. NAJFM. 
+-   Walters and Martell 2004. Fisheries ecology and management.
 
+-   Wilberg et al. 2005. Yellow perch dynamics in southwestern Lake Michigan 1986-2002. NAJFM.
 :::
