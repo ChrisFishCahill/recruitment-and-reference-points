@@ -24,7 +24,7 @@ author: Christopher L. Cahill <br> Associate Director
 
 ::: {style="font-size:28px"}
 -   Feedback policies (also called harvest control rules) are agreed-upon, transparent, mathematical equations that adjust harvest in response to changes in stock size
-    -   Intended to meet explicit management objectives (e.g., stable yield, rebuilding, consistent catches)\
+    -   Should help meet explicit management objectives (e.g., stable yield, rebuilding, consistent catches)\
     -   Stock size may change due to environmental variability or fishing pressure\
     -   Managers often implement them by setting total allowable catches (TACs)
 -   Some agencies (e.g., NOAA, DFO) use default harvest control rules
@@ -33,7 +33,6 @@ author: Christopher L. Cahill <br> Associate Director
     -   Often justified as being "precautionary"\
     -   Analysts run simulations to explore tradeoffs using tools like Management Strategy Evaluation (MSE)
 -   You can set up and explore these policies using the tools you already have
--   Potential problem(s) with MSE
 
 [Hilborn and Walters 1992; Walters and Hilborn 1978; Walters 1986; Restrepo and Powers 1999]{.footerRight}
 :::
@@ -272,9 +271,9 @@ get_upow <- function(X, H) {
   log(0.5) / (log(X) - log(H))
 }
 
-# Example: Cahill is indifferent between 3 guaranteed and 
-# a 50/50 gamble between 0 or 20 walleye
-get_upow(X = 3, H = 20)
+# Example: Cahill is indifferent between 2 guaranteed and 
+# a 50/50 gamble between 0 or 10 walleye
+get_upow(X = 2, H = 10)
 
 ```
 :::
@@ -362,9 +361,9 @@ abline(v = escapement, col = "dodgerblue3", lty = 2)
 ## The Omniscient Manager
 
 ::: {style="font-size:26px"}
--   Let us ask pose the following thought-experiment
+-   Let us pose the following thought-experiment
     -   *Suppose a manager knew future recruitment, mortality, and system dynamics. What sequence of instantaneous fishing mortality Fₜ would they set to maximize long-term objectives?*
-    -   What would you do differently if you knew what was going to happen?
+    -   What would you do if you knew what was going to happen?
 :::
 
 ## The Omniscient Manager
@@ -470,9 +469,8 @@ abline(v = escapement, col = "dodgerblue3", lty = 2)
 -   Estimate parameters of these rules to maximize an objective over a finite time horizon (e.g. yield, HARA utility)
 -   Use **smooth approximations** (e.g. softplus) to ensure differentiability for compatibility with numerical optimization
 -   Recognize that the approach differs under:
-    -   **Input control**: $U_t$ is implemented, and the resulting catch is implied.
-    -   **Output control**: where $\text{TAC}_t$ is implemented and the resulting $U_t$ (or $F_t$) is implied from harvest over true biomass
-    
+    -   **Input control**: where $U_t$ is implemented and $\text{TAC}_t$ is implied
+    -   **Output control**: where $\text{TAC}_t$ is implemented and $U_t$ is implied
 [see also Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992]{.footerLeft}
 :::
 
@@ -654,8 +652,9 @@ $$
 
 - Play with input control scripts for linear and rectilinear harvest control rules
 - Explore how objective (yield vs. HARA) changes feedback policy shape
+- Where does the maximizing yield objective cap mortality?
+- What does the rectilinear rule do that the linear rule does not?
 - Does observation error change your answers? If so, how?
-- Discuss value of information and the dynamics of uncertainty in policy design
 
 :::
 
