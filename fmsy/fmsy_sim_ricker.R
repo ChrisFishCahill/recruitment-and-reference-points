@@ -41,21 +41,20 @@ get_yield <- function(logF, wt) {
   Z <- matrix(F * vul + M, nrow = n_years, ncol = n_ages, byrow = TRUE)
   log_n <- matrix(-Inf, nrow = n_years, ncol = n_ages)
   log_n[1, ] <- log(ninit)
-  ssb <- yield <- numeric(n_years)
-  ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
-  for (t in 2:n_years) {
-    log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
-    for (a in 2:n_ages) {
-      log_n[t, a] <- log_n[t - 1, a - 1] - Z[t - 1, a - 1]
-    }
-    log_n[t, n_ages] <- log(
-      exp(log_n[t, n_ages]) +
-        exp(log_n[t - 1, n_ages]) * exp(-Z[t - 1, n_ages])
-    )
+  ssb <- yield <- numeric(n_years - 1)
+  for (t in 1:(n_years - 1)) {
     ssb[t] <- sum(exp(log_n[t, ]) * mat * wa)
     yield[t] <- sum(exp(log_n[t, ]) * wa * F * vul / Z[t, ] * (1 - exp(-Z[t, ])))
+    for (a in 2:n_ages) {
+      log_n[t + 1, a] <- log_n[t, a - 1] - Z[t, a - 1]
+    }
+    log_n[t + 1, n_ages] <- log(
+      exp(log_n[t + 1, n_ages]) +
+        exp(log_n[t, n_ages]) * exp(-Z[t, n_ages])
+    )
+    log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - br * ssb[t] + wt[t]
   }
-  -mean(yield[-1])
+  -mean(yield)
 }
 
 # run simulation
@@ -147,5 +146,5 @@ quantile(msy_vals, c(0.05, 0.5, 0.95))
 
 # Could you adapt this to work with steepness instead of recK?
 
-# Compare the answers you get here with the equilibrium values. What do you notice 
-# or see? 
+# Compare the answers you get here with the equilibrium values. What do you notice
+# or see?
