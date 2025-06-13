@@ -31,32 +31,30 @@ wt <- rnorm(n_years - 1, 0, sdr)
 f <- function(par) {
   getAll(data, par)
   Ft <- exp(logF)
-
   log_n <- matrix(-Inf, n_years, length(mat))
   ssb <- yield <- vul_bio <- numeric(n_years)
-
   log_n[1, ] <- log(ninit)
-  ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
-  vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
-
-  for (t in 2:n_years) {
-    Zt <- Ft[t - 1] * vul + M
-    log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
+  for (t in 1:(n_years - 1)) {
+    vul_bio[t] <- sum(exp(log_n[t,]) * wa * vul)
+    ssb[t] <- sum(exp(log_n[t,]) * mat * wa)
+    Zt <- Ft[t] * vul + M
+    yield[t] <- sum(exp(log_n[t,]) * wa * Ft[t] * vul / Zt * (1 - exp(-Zt)))
+    ## survival & ageing
     for (a in 2:n_ages) {
-      log_n[t, a] <- log_n[t - 1, a - 1] - Zt[a - 1]
+      log_n[t + 1, a] <- log_n[t, a - 1] - Zt[a - 1]
     }
-    log_n[t, n_ages] <- log(
-      exp(log_n[t, n_ages]) + exp(log_n[t - 1, n_ages]) * exp(-Zt[n_ages])
+    ## plus-group
+    log_n[t + 1, n_ages] <- log(
+      exp(log_n[t + 1, n_ages]) +
+        exp(log_n[t, n_ages]) * exp(-Zt[n_ages])
     )
-    # modulate population abundance every 100 years or so
+    ## recruitment
+    log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - br * ssb[t] + wt[t]
+    ## occasional shock of e^-shock
     if (t %% 100 == 0) {
       shock <- -10
-      log_n[t, ] <- log_n[t, ] + shock # modulate n by e^shock
+      log_n[t + 1, ] <- log_n[t + 1, ] + shock
     }
-    n <- exp(log_n[t, ])
-    ssb[t] <- sum(n * mat * wa)
-    vul_bio[t] <- sum(n * wa * vul)
-    yield[t] <- sum(n * wa * Ft[t - 1] * vul / Zt * (1 - exp(-Zt)))
   }
   REPORT(yield)
   REPORT(vul_bio)
@@ -101,8 +99,8 @@ rep_hara <- obj_hara$report()
 vbo <- sum(ninit * wa * vul)
 crash_years <- seq(100, n_years, by = 100)
 crash_F_indices <- crash_years - 1
-keep <- 2:(n_years - 50)
-burn_idx <- which((keep - 1) <= 10) # first 10 years as burn in 
+keep <- 1:(n_years - 50)
+burn_idx <- which((keep - 1) <= 10) # first 10 years as burn in
 crash_F_indices <- crash_F_indices[crash_F_indices %in% (keep - 1)]
 
 vb_yield <- rep_yield$vul_bio[keep - 1]
@@ -111,64 +109,43 @@ Ft_y <- Ft_yield[keep - 1]
 Ft_h <- Ft_hara[keep - 1]
 highlight_idx <- which((keep - 1) %in% crash_F_indices)
 
-layout(matrix(1:4, 2, 2, byrow = TRUE))
+# setup
+vbo <- sum(ninit * wa * vul)
+crash_years <- seq(100, n_years, by = 100)
+keep <- 1:(n_years - 50)
+
+# aligned data
+vb_yield <- rep_yield$vul_bio[keep]
+vb_hara <- rep_hara$vul_bio[keep]
+Ft_y <- Ft_yield[keep]
+Ft_h <- Ft_hara[keep]
+
+burn_idx <- which(keep <= 10)
+highlight_idx <- which(keep %in% crash_years)
+
+Ut_y <- 1 - exp(-Ft_y)
+Ut_h <- 1 - exp(-Ft_h)
+
+# layout: 3 rows of plots
+par(mfrow = c(3, 2))
 par(mar = c(4, 4.2, 2, 1))
 
-# Panel 1: Absolute scale, yield
-par(mfrow = c(2, 1))
-plot(vb_yield, Ft_y,
-  pch = 19, col = "grey50", cex = 0.6,
-  xlab = "Vulnerable biomass", ylab = "Estimated Ft",
-  main = "Yield-maximizing (upow = 1)", ylim = c(0, 1.15),
-  xlim = c(0, vbo)
-)
-points(vb_yield[highlight_idx], Ft_y[highlight_idx],
-  pch = 4,
-  col = "blue", lwd = 1.2
-)
-points(vb_yield[burn_idx], Ft_y[burn_idx], pch = 4, col = "red", cex = 0.6) # burn-in
-abline(v = vbo, col = "black", lty = 2)
-legend("topleft",
-  legend = c("Crash-year Ft", "Burn-in"), pch = 4,
-  col = c("blue", "red"), bty = "n"
-)
-
-# Panel 2: Absolute scale, HARA
-plot(vb_hara, Ft_h,
-  pch = 19, col = "grey50", cex = 0.6,
-  xlab = "Vulnerable biomass", ylab = "Estimated Ft",
-  main = "Risk-averse (upow = 0.6)", ylim = c(0, 1.15),
-  xlim = c(0, vbo)
-)
-points(vb_hara[highlight_idx], Ft_h[highlight_idx],
-  pch = 4,
-  col = "blue", lwd = 1.2
-)
-points(vb_hara[burn_idx], Ft_h[burn_idx], pch = 4, col = "red", cex = 0.6) # burn-in
-abline(v = vbo, col = "black", lty = 2)
-legend("topleft",
-  legend = c("Crash-year Ft", "Burn-in"), pch = 4,
-  col = c("blue", "red"), bty = "n"
-)
-
-# Panel 3: Relative scale, yield
+# Panel 1: Relative scale, yield
 plot(vb_yield / vbo, Ft_y,
   pch = 19, col = "grey50", cex = 0.6,
   xlab = "Relative vulnerable biomass", ylab = "Estimated Ft",
-  main = "Yield-maximizing (relative scale)", ylim = c(0, 1.15),
+  main = "Yield-maximizing (relative scale)", ylim = c(0, 4.5),
   xlim = c(0, 1)
 )
 points(vb_yield[highlight_idx] / vbo, Ft_y[highlight_idx],
-  pch = 4,
-  col = "blue", lwd = 1.2
+  pch = 4, col = "blue", lwd = 1.2
 )
 points(vb_yield[burn_idx] / vbo, Ft_y[burn_idx],
-  pch = 4, col = "red",
-  cex = 0.6
-) # burn-in
+  pch = 4, col = "red", cex = 0.6
+)
 abline(v = 1, col = "black", lty = 2)
 
-# Panel 4: Relative scale, HARA
+# Panel 2: Relative scale, HARA
 plot(vb_hara / vbo, Ft_h,
   pch = 19, col = "grey50", cex = 0.6,
   xlab = "Relative vulnerable biomass", ylab = "Estimated Ft",
@@ -176,17 +153,14 @@ plot(vb_hara / vbo, Ft_h,
   xlim = c(0, 1)
 )
 points(vb_hara[highlight_idx] / vbo, Ft_h[highlight_idx],
-  pch = 4,
-  col = "blue", lwd = 1.2
+  pch = 4, col = "blue", lwd = 1.2
 )
-points(vb_hara[burn_idx] / vbo, Ft_hara[burn_idx],
-  pch = 4, col = "red",
-  cex = 0.6
-) # burn-in
+points(vb_hara[burn_idx] / vbo, Ft_h[burn_idx],
+  pch = 4, col = "red", cex = 0.6
+)
 abline(v = 1, col = "black", lty = 2)
 
-# Panel 5: Yield-maximizing (U space)
-Ut_y <- 1 - exp(-Ft_y)
+# Panel 3: Yield-maximizing (U space)
 plot(vb_yield / vbo, Ut_y,
   pch = 19, col = "grey50", cex = 0.6,
   xlab = "Relative vulnerable biomass", ylab = "Exploitation rate (U)",
@@ -196,16 +170,12 @@ points(vb_yield[highlight_idx] / vbo, Ut_y[highlight_idx],
   pch = 4, col = "blue", lwd = 1.2
 )
 points(vb_yield[burn_idx] / vbo, Ut_y[burn_idx],
-  pch = 4, col = "red",
-  cex = 0.6
-) # burn-in
-abline(v = 1, col = "black", lty = 2)
-
+  pch = 4, col = "red", cex = 0.6
+)
 abline(v = 1, col = "black", lty = 2)
 abline(h = 0.5, col = "black", lty = 2)
 
-# Panel 6: Risk-averse (U space)
-Ut_h <- 1 - exp(-Ft_h)
+# Panel 4: Risk-averse (U space)
 plot(vb_hara / vbo, Ut_h,
   pch = 19, col = "grey50", cex = 0.6,
   xlab = "Relative vulnerable biomass", ylab = "Exploitation rate (U)",
@@ -215,47 +185,38 @@ points(vb_hara[highlight_idx] / vbo, Ut_h[highlight_idx],
   pch = 4, col = "blue", lwd = 1.2
 )
 points(vb_hara[burn_idx] / vbo, Ut_h[burn_idx],
-  pch = 4,
-  col = "red", cex = 0.6
-) # burn-in
-
+  pch = 4, col = "red", cex = 0.6
+)
 abline(v = 1, col = "black", lty = 2)
 abline(h = 0.5, col = "black", lty = 2)
 
-
-#------------------------------------
-# Recommended TAC vs. vulbio
-
-Ut_y <- 1 - exp(-Ft_y)
-plot(vb_yield, Ut_y*vb_yield,
-     pch = 19, col = "grey50", cex = 0.6,
-     xlab = "Vulnerable biomass", ylab = "Total Allowable Catch (TAC)",
-     main = "Yield maximizing policy",
+# Panel 5: TAC vs. VB (yield-maximizing)
+plot(vb_yield, Ut_y * vb_yield,
+  pch = 19, col = "grey50", cex = 0.6,
+  xlab = "Vulnerable biomass", ylab = "Total Allowable Catch (TAC)",
+  main = "Yield maximizing policy"
 )
-points(vb_yield[highlight_idx], Ut_y[highlight_idx]*vb_yield[highlight_idx],
-       pch = 4, col = "blue", lwd = 1.2
+points(vb_yield[highlight_idx], Ut_y[highlight_idx] * vb_yield[highlight_idx],
+  pch = 4, col = "blue", lwd = 1.2
 )
-points(vb_yield[burn_idx], Ut_y[burn_idx]* vb_yield[burn_idx],
-       pch = 4, col = "red",
-       cex = 0.6
-) # burn-in
+points(vb_yield[burn_idx], Ut_y[burn_idx] * vb_yield[burn_idx],
+  pch = 4, col = "red", cex = 0.6
+)
 abline(v = 1, col = "black", lty = 2)
 abline(h = 0.5, col = "black", lty = 2)
 
-Ut_h <- 1 - exp(-Ft_h)
-plot(vb_hara, Ut_h*vb_hara,
-     pch = 19, col = "grey50", cex = 0.6,
-     xlab = "Vulnerable biomass", ylab = "Total Allowable Catch (TAC)",
-     main = "Risk-averse policy", ylim = c(0, 1), xlim = c(0, 1)
+# Panel 6: TAC vs. VB (risk-averse)
+plot(vb_hara, Ut_h * vb_hara,
+  pch = 19, col = "grey50", cex = 0.6,
+  xlab = "Vulnerable biomass", ylab = "Total Allowable Catch (TAC)",
+  main = "Risk-averse policy", ylim = c(0, 1), xlim = c(0, 1)
 )
-points(vb_hara[highlight_idx] / vbo, Ut_h[highlight_idx],
-       pch = 4, col = "blue", lwd = 1.2
+points(vb_hara[highlight_idx], Ut_h[highlight_idx] * vb_hara[highlight_idx],
+  pch = 4, col = "blue", lwd = 1.2
 )
-points(vb_hara[burn_idx], Ut_h[burn_idx],
-       pch = 4,
-       col = "red", cex = 0.6
-) # burn-in
-
+points(vb_hara[burn_idx], Ut_h[burn_idx] * vb_hara[burn_idx],
+  pch = 4, col = "red", cex = 0.6
+)
 abline(v = 1, col = "black", lty = 2)
 abline(h = 0.5, col = "black", lty = 2)
 
