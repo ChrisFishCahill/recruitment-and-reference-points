@@ -470,7 +470,7 @@ abline(v = escapement, col = "dodgerblue3", lty = 2)
 -   Estimate parameters of these rules to maximize an objective over a finite time horizon (e.g. yield, HARA utility)
 -   Use **smooth approximations** (e.g. softplus) to ensure differentiability for compatibility with numerical optimization
 -   Recognize that the approach differs under:
-    -   **Input control**: $U_t$ (or $F_t$) is implemented, and the resulting catch is implied.
+    -   **Input control**: $U_t$ is implemented, and the resulting catch is implied.
     -   **Output control**: where $\text{TAC}_t$ is implemented and the resulting $U_t$ (or $F_t$) is implied from harvest over true biomass
     
 [see also Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992]{.footerLeft}
