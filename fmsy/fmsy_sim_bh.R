@@ -54,7 +54,7 @@ get_yield <- function(logF, wt) {
       exp(log_n[t + 1, n_ages]) +
         exp(log_n[t, n_ages]) * exp(-Z[t, n_ages])
     )
-    log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - log(br * ssb[t]) + wt[t]
+    log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - log(1 + br * ssb[t]) + wt[t]
   }
   -mean(yield)
 }
@@ -64,7 +64,7 @@ fmsy_vals <- msy_vals <- numeric(n_sim)
 for (i in 1:n_sim) {
   wt <- wt_mat[i, ]
   opt <- optimize(function(logF) get_yield(logF, wt),
-    interval = log(c(0.01, 5))
+    interval = log(c(0.01, 15))
   )
   fmsy_vals[i] <- exp(opt$minimum)
   msy_vals[i] <- -get_yield(opt$minimum, wt) # positive MSY
