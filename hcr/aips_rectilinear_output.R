@@ -182,14 +182,18 @@ ramp_h <- slope_h * (vb_seq - lrp_h)
 soft_ramp_h <- softplus(ramp_h, beta)
 Ut_h_pred <- ucap_h - softplus(ucap_h - soft_ramp_h, beta)
 
+# align Ut and vb lengths
+n_y <- min(length(vb_y) - 1, length(rep_yield$Ut))
+n_h <- min(length(vb_h) - 1, length(rep_hara$Ut))
+
 # plot: Ut vs vb
 par(mfrow = c(2, 2), mar = c(4, 4.2, 2, 1))
-plot(vb_y[-1], rep_yield$Ut,
+plot(vb_y[-1][1:n_y], rep_yield$Ut[1:n_y],
   col = "dodgerblue3", pch = 16, cex = 0.4,
   xlab = "Vulnerable biomass", ylab = "Exploitation rate (Ut)",
   main = "Ut vs vb"
 )
-points(vb_h[-1], rep_hara$Ut, col = "darkorchid3", pch = 1, cex = 0.4)
+points(vb_h[-1][1:n_h], rep_hara$Ut[1:n_h], col = "darkorchid3", pch = 1, cex = 0.4)
 lines(vb_seq, Ut_y_pred, col = "dodgerblue3", lwd = 2)
 lines(vb_seq, Ut_h_pred, col = "darkorchid3", lwd = 2)
 legend("bottomright",
@@ -198,45 +202,46 @@ legend("bottomright",
 )
 
 # plot: Ft vs vb
-Ft_y <- rep_yield$Ft
-Ft_h <- rep_hara$Ft
+Ft_y <- rep_yield$Ft[1:n_y]
+Ft_h <- rep_hara$Ft[1:n_h]
 Ft_y_pred <- -log(1 - Ut_y_pred)
 Ft_h_pred <- -log(1 - Ut_h_pred)
 
-plot(vb_y[-1], rep_yield$Ft,
+plot(vb_y[-1][1:n_y], Ft_y,
   col = "dodgerblue3", pch = 16, cex = 0.4,
   xlab = "Vulnerable biomass", ylab = "Fishing mortality (Ft)",
   main = "Ft vs vb"
 )
-points(vb_h[-1], rep_hara$Ft, col = "darkorchid3", pch = 1, cex = 0.4)
+points(vb_h[-1][1:n_h], Ft_h, col = "darkorchid3", pch = 1, cex = 0.4)
 lines(vb_seq, Ft_y_pred, col = "dodgerblue3", lwd = 2)
 lines(vb_seq, Ft_h_pred, col = "darkorchid3", lwd = 2)
 
 # plot: TAC vs vb
-TAC_y <- rep_yield$Ut * vb_y[-1]
-TAC_h <- rep_hara$Ut * vb_h[-1]
+TAC_y <- rep_yield$Ut[1:n_y] * vb_y[-1][1:n_y]
+TAC_h <- rep_hara$Ut[1:n_h] * vb_h[-1][1:n_h]
 TAC_y_pred <- Ut_y_pred * vb_seq
 TAC_h_pred <- Ut_h_pred * vb_seq
 
-plot(vb_y[-1], TAC_y,
+plot(vb_y[-1][1:n_y], TAC_y,
   col = "dodgerblue3", pch = 16, cex = 0.4,
   xlab = "Vulnerable biomass", ylab = "TAC",
   main = "TAC vs vb"
 )
-points(vb_h[-1], TAC_h, col = "darkorchid3", pch = 1, cex = 0.4)
+points(vb_h[-1][1:n_h], TAC_h, col = "darkorchid3", pch = 1, cex = 0.4)
 lines(vb_seq, TAC_y_pred, col = "dodgerblue3", lwd = 2)
 lines(vb_seq, TAC_h_pred, col = "darkorchid3", lwd = 2)
 
-# plot: time series of Ft, vb, yield
+# plot: time series of Ft
 years <- 920:999
 t_seq <- years - 919
-plot(t_seq, Ft_y[years],
+plot(t_seq, rep_yield$Ft[years],
   type = "l", col = "dodgerblue3", lwd = 2,
-  ylim = c(0, max(Ft_y, Ft_h)), ylab = "Ft", xlab = "Year",
+  ylim = c(0, max(rep_yield$Ft, rep_hara$Ft)), ylab = "Ft", xlab = "Year",
   main = "Ft through time"
 )
-lines(t_seq, Ft_h[years], col = "darkorchid3", lwd = 2, lty = 2)
+lines(t_seq, rep_hara$Ft[years], col = "darkorchid3", lwd = 2, lty = 2)
 
+# biomass and yield through time
 par(mfrow = c(1, 1))
 plot(t_seq, vb_y[years],
   type = "l", col = "dodgerblue3", lwd = 2,
