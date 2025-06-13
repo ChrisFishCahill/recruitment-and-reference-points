@@ -653,7 +653,7 @@ $$
 ::: {style="font-size:26px"}
 
 - Play with input control scripts for linear and rectilinear harvest control rules
-- Explore how objectives (yield vs. HARA) changes feedback policy shape
+- Explore how objective (yield vs. HARA) changes feedback policy shape
 - Does observation error change your answers? If so, how?
 - Discuss value of information and the dynamics of uncertainty in policy design
 
