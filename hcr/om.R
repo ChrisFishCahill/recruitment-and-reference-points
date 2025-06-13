@@ -35,10 +35,10 @@ f <- function(par) {
   ssb <- yield <- vul_bio <- numeric(n_years)
   log_n[1, ] <- log(ninit)
   for (t in 1:(n_years - 1)) {
-    vul_bio[t] <- sum(exp(log_n[t,]) * wa * vul)
-    ssb[t] <- sum(exp(log_n[t,]) * mat * wa)
+    vul_bio[t] <- sum(exp(log_n[t, ]) * wa * vul)
+    ssb[t] <- sum(exp(log_n[t, ]) * mat * wa)
     Zt <- Ft[t] * vul + M
-    yield[t] <- sum(exp(log_n[t,]) * wa * Ft[t] * vul / Zt * (1 - exp(-Zt)))
+    yield[t] <- sum(exp(log_n[t, ]) * wa * Ft[t] * vul / Zt * (1 - exp(-Zt)))
     ## survival & ageing
     for (a in 2:n_ages) {
       log_n[t + 1, a] <- log_n[t, a - 1] - Zt[a - 1]
@@ -144,6 +144,11 @@ points(vb_yield[burn_idx] / vbo, Ft_y[burn_idx],
   pch = 4, col = "red", cex = 0.6
 )
 abline(v = 1, col = "black", lty = 2)
+
+legend("topleft",
+       legend = c("Crash-year Ft", "Burn-in"), pch = 4,
+       col = c("blue", "red"), bty = "n"
+)
 
 # Panel 2: Relative scale, HARA
 plot(vb_hara / vbo, Ft_h,
