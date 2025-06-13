@@ -48,18 +48,14 @@ f <- function(par) {
     Zt <- Ft[t] * vul + M
 
     yield[t] <- sum(exp(log_n[t, ]) * wa * Ft[t] * vul / Zt * (1 - exp(-Zt)))
-    ## survival & ageing
     for (a in 2:n_ages) {
       log_n[t + 1, a] <- log_n[t, a - 1] - Zt[a - 1]
     }
-    ## plus-group
     log_n[t + 1, n_ages] <- log(
       exp(log_n[t + 1, n_ages]) +
         exp(log_n[t, n_ages]) * exp(-Zt[n_ages])
     )
-    ## recruitment
     log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - br * ssb[t] + wt[t]
-    ## occasional shock of e^-shock
     if (t %% 100 == 0) {
       shock <- -10
       log_n[t + 1, ] <- log_n[t + 1, ] + shock
@@ -78,7 +74,6 @@ data <- list(
   upow = NA, n_years = n_years
 )
 
-# starting values for smooth HCR parameters
 par <- list(log_lrp = log(0.6), log_cslope = log(1.2))
 
 # fit yield-maximizing rule
@@ -103,6 +98,20 @@ cslope_y <- exp(opt_yield$par["log_cslope"])
 lrp_h <- exp(opt_hara$par["log_lrp"])
 cslope_h <- exp(opt_hara$par["log_cslope"])
 
+# softplus helper
+softplus <- function(z, beta) (1 / beta) * log1p(exp(beta * z))
+
+# vb ranges
+vb_seq_y <- seq(min(rep_yield$vul_bio), max(rep_yield$vul_bio), length.out = 200)
+vb_seq_h <- seq(min(rep_hara$vul_bio), max(rep_hara$vul_bio), length.out = 200)
+
+# fitted curves
+TAC_y <- softplus(cslope_y * (vb_seq_y - lrp_y), beta)
+Ut_y <- TAC_y / vb_seq_y
+
+TAC_h <- softplus(cslope_h * (vb_seq_h - lrp_h), beta)
+Ut_h <- TAC_h / vb_seq_h
+
 # plots ---------------------------------------------------------------
 par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
 
@@ -112,6 +121,7 @@ plot(rep_yield$vul_bio, rep_yield$yield,
   main = "Yield objective"
 )
 abline(v = lrp_y, col = "dodgerblue3", lty = 3)
+lines(vb_seq_y, TAC_y, col = "black", lwd = 2)
 
 plot(rep_yield$vul_bio, rep_yield$yield / rep_yield$vul_bio,
   pch = 16, col = "dodgerblue3", cex = 0.4,
@@ -120,6 +130,7 @@ plot(rep_yield$vul_bio, rep_yield$yield / rep_yield$vul_bio,
   main = "Yield objective"
 )
 abline(v = lrp_y, col = "dodgerblue3", lty = 3)
+lines(vb_seq_y, Ut_y, col = "black", lwd = 2)
 
 plot(rep_hara$vul_bio, rep_hara$yield,
   pch = 16, col = "darkorchid", cex = 0.4,
@@ -127,6 +138,7 @@ plot(rep_hara$vul_bio, rep_hara$yield,
   ylim = c(0, 5), xlim = c(0, 3.0), main = "HARA objective"
 )
 abline(v = lrp_h, col = "darkorchid3", lty = 3)
+lines(vb_seq_h, TAC_h, col = "black", lwd = 2)
 
 plot(rep_hara$vul_bio, rep_hara$yield / rep_hara$vul_bio,
   pch = 16, col = "darkorchid", cex = 0.4,
@@ -135,6 +147,7 @@ plot(rep_hara$vul_bio, rep_hara$yield / rep_hara$vul_bio,
   main = "HARA objective"
 )
 abline(v = lrp_h, col = "darkorchid3", lty = 3)
+lines(vb_seq_h, Ut_h, col = "black", lwd = 2)
 
 #----------------------------
 # Some stuff to discuss

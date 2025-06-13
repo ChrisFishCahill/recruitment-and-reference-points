@@ -36,22 +36,17 @@ f <- function(par) {
   getAll(data, par)
   lrp <- exp(log_lrp)
   cslope <- exp(log_cslope)
-
-  log_n <- matrix(-Inf, n_years, n_ages)
-  ssb <- yield <- vul_bio <- numeric(n_years)
+  log_n <- matrix(-Inf, n_years, length(mat))
+  ssb <- yield <- vul_bio <- numeric(n_years - 1)
   Ft <- Ut <- numeric(n_years - 1)
-
   log_n[1, ] <- log(ninit)
-  ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
-  vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
-
-  for (t in 2:n_years) {
-    vb_true <- vul_bio[t - 1]
+  for (t in 1:(n_years - 1)) {
+    vul_bio[t] <- vb_true <- sum(exp(log_n[t, ]) * wa * vul)
+    ssb[t] <- sum(exp(log_n[t, ]) * mat * wa)
     # step 0: observe biomass with error
     vb_obs <- vb_true * exp(rnorm(1, 0, sigma_obs)) # observation error
 
     # step 1: compute target TAC using softened linear ramp
-    log_vb_obs <- log(vb_obs)
     tac_target <- (1 / beta) * log1p(exp(beta * cslope * (vb_obs - lrp))) # softplus on VB_obs
 
     # step 2: derive implied exploitation rate based on true biomass
@@ -61,25 +56,27 @@ f <- function(par) {
     u_realized <- -1 / beta * log(exp(-beta * u_implied) + exp(-beta * UMAX)) # soft min
 
     # step 4: convert to F and use in population dynamics
-    Ut[t - 1] <- u_realized
-    Ft[t - 1] <- -log(1 - u_realized)
-    Zt <- Ft[t - 1] * vul + M
+    Ut[t] <- u_realized
+    Ft[t] <- -log(1 - u_realized)
+    Zt <- Ft[t] * vul + M
 
-    log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
+    yield[t] <- sum(exp(log_n[t, ]) * wa * Ft[t] * vul / Zt * (1 - exp(-Zt)))
+    ## survival & ageing
     for (a in 2:n_ages) {
-      log_n[t, a] <- log_n[t - 1, a - 1] - Zt[a - 1]
+      log_n[t + 1, a] <- log_n[t, a - 1] - Zt[a - 1]
     }
-    log_n[t, n_ages] <- log(
-      exp(log_n[t, n_ages]) + exp(log_n[t - 1, n_ages]) * exp(-Zt[n_ages])
+    ## plus-group
+    log_n[t + 1, n_ages] <- log(
+      exp(log_n[t + 1, n_ages]) +
+        exp(log_n[t, n_ages]) * exp(-Zt[n_ages])
     )
+    ## recruitment
+    log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - br * ssb[t] + wt[t]
+    ## occasional shock of e^-shock
     if (t %% 100 == 0) {
       shock <- -10
-      log_n[t, ] <- log_n[t, ] + shock
+      log_n[t + 1, ] <- log_n[t + 1, ] + shock
     }
-    n <- exp(log_n[t, ])
-    ssb[t] <- sum(n * mat * wa)
-    vul_bio[t] <- sum(n * wa * vul)
-    yield[t] <- sum(n * wa * Ft[t - 1] * vul / Zt * (1 - exp(-Zt)))
   }
   REPORT(yield)
   REPORT(vul_bio)
@@ -113,93 +110,52 @@ opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
 )
 rep_hara <- obj_hara$report()
 
-# ----- helper function -----
-## ----- helper (soft-min with UMAX) -----------------
-soft_min <- function(x, umax, beta) {
-  umax - (1 / beta) * log1p(exp(beta * (umax - x)))
-}
+# fitted parameters
+lrp_y <- exp(opt_yield$par["log_lrp"])
+cslope_y <- exp(opt_yield$par["log_cslope"])
+lrp_h <- exp(opt_hara$par["log_lrp"])
+cslope_h <- exp(opt_hara$par["log_cslope"])
 
-## ----- PREPARE VECTORS ALIGNED WITH  F_{t-1}  ------
-vb_y_plot <- vb_y[-n_years] # drop last year → length = n_years-1
-vb_h_plot <- vb_h[-n_years]
+# plots ---------------------------------------------------------------
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
 
-Ft_y <- rep_yield$Ft # already length n_years-1
-Ft_h <- rep_hara$Ft
+# softplus and fitted curves
+softplus <- function(z, beta) (1 / beta) * log1p(exp(beta * z))
+vb_grid <- seq(0, 3.2, length.out = 200)
+tac_y <- softplus(cslope_y * (vb_grid - lrp_y), beta)
+tac_h <- softplus(cslope_h * (vb_grid - lrp_h), beta)
 
-## ----- PREDICTED CURVES  (Yield) -------------------
-tac_y_hat <- softplus(cslope_y * (vb_y_plot - lrp_y), beta) # TAC*
-u_y_hat <- tac_y_hat / (vb_y_plot * exp(-M / 2)) # implied U
-u_y_hat <- soft_min(u_y_hat, UMAX, beta) # cap at UMAX
-Ft_y_hat <- -log(1 - u_y_hat) # to F
+# original plots
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
 
-## ----- PREDICTED CURVES  (HARA) --------------------
-tac_h_hat <- softplus(cslope_h * (vb_h_plot - lrp_h), beta)
-u_h_hat <- tac_h_hat / (vb_h_plot * exp(-M / 2))
-u_h_hat <- soft_min(u_h_hat, UMAX, beta)
-Ft_h_hat <- -log(1 - u_h_hat)
-
-## ----- CLEAN x-sequences FOR SMOOTH LINES ----------
-vb_seq_y <- seq(min(vb_y_plot), max(vb_y_plot), length.out = 200)
-vb_seq_h <- seq(min(vb_h_plot), max(vb_h_plot), length.out = 200)
-
-Ft_y_smooth <- {
-  tac <- softplus(cslope_y * (vb_seq_y - lrp_y), beta)
-  u <- tac / (vb_seq_y * exp(-M / 2))
-  u <- soft_min(u, UMAX, beta)
-  -log(1 - u)
-}
-
-Ft_h_smooth <- {
-  tac <- softplus(cslope_h * (vb_seq_h - lrp_h), beta)
-  u <- tac / (vb_seq_h * exp(-M / 2))
-  u <- soft_min(u, UMAX, beta)
-  -log(1 - u)
-}
-
-## ----- PLOT LAYOUT ---------------------------------
-par(mfrow = c(2, 2), mar = c(4, 4.2, 2, 1))
-
-# 1. TAC vs vb (Yield)
-plot(vb_y_plot, tac_y_hat,
+plot(rep_yield$vul_bio, rep_yield$yield,
   pch = 16, col = "dodgerblue3", cex = 0.4,
-  xlab = "Vulnerable biomass (VB)",
-  ylab = "TAC",
-  main = "TAC vs VB (Yield)"
+  xlab = "vulnerable biomass", ylab = "TAC",
+  main = "Yield objective"
 )
 abline(v = lrp_y, col = "dodgerblue3", lty = 3)
-lines(vb_seq_y, softplus(cslope_y * (vb_seq_y - lrp_y), beta),
-  col = "dodgerblue3", lwd = 2
-)
+lines(vb_grid, pmax(0, tac_y), col = "black", lwd = 2)
 
-# 2. TAC vs vb (HARA)
-plot(vb_h_plot, tac_h_hat,
-  pch = 16, col = "darkorchid3", cex = 0.4,
-  xlab = "Vulnerable biomass (VB)",
-  ylab = "TAC",
-  main = "TAC vs VB (HARA)"
-)
-abline(v = lrp_h, col = "darkorchid3", lty = 3)
-lines(vb_seq_h, softplus(cslope_h * (vb_seq_h - lrp_h), beta),
-  col = "darkorchid3", lwd = 2
-)
-
-# 3. Ft vs vb (Yield)
-plot(vb_y_plot, Ft_y,
+plot(rep_yield$vul_bio, rep_yield$yield / rep_yield$vul_bio,
   pch = 16, col = "dodgerblue3", cex = 0.4,
-  xlab = "Vulnerable biomass (VB)",
-  ylab = "Fishing mortality (F)",
-  main = "F vs VB (Yield)"
+  xlab = "vulnerable biomass", ylab = "U(t)",
+  ylim = c(0, 1), main = "Yield objective"
 )
 abline(v = lrp_y, col = "dodgerblue3", lty = 3)
-lines(vb_seq_y, Ft_y_smooth, col = "dodgerblue3", lwd = 2)
+lines(vb_grid, pmax(0, tac_y) / vb_grid, col = "black", lwd = 2)
 
-# 4. Ft vs vb (HARA)
-plot(vb_h_plot, Ft_h,
-  pch = 16, col = "darkorchid3", cex = 0.4,
-  xlab = "Vulnerable biomass (VB)",
-  ylab = "Fishing mortality (F)",
-  main = "F vs VB (HARA)",
-  ylim = c(0, max(Ft_y, Ft_h, Ft_y_smooth, Ft_h_smooth))
+plot(rep_hara$vul_bio, rep_hara$yield,
+  pch = 16, col = "darkorchid", cex = 0.4,
+  xlab = "vulnerable biomass", ylab = "TAC",
+  ylim = c(0, 3), xlim = c(0, 3.0), main = "HARA objective"
 )
 abline(v = lrp_h, col = "darkorchid3", lty = 3)
-lines(vb_seq_h, Ft_h_smooth, col = "darkorchid3", lwd = 2)
+lines(vb_grid, pmax(0, tac_h), col = "black", lwd = 2)
+
+plot(rep_hara$vul_bio, rep_hara$yield / rep_hara$vul_bio,
+  pch = 16, col = "darkorchid", cex = 0.4,
+  xlab = "vulnerable biomass", ylab = "U(t)",
+  ylim = c(0, 1), main = "HARA objective"
+)
+abline(v = lrp_h, col = "darkorchid3", lty = 3)
+lines(vb_grid, pmax(0, tac_h) / vb_grid, col = "black", lwd = 2)
