@@ -1,0 +1,705 @@
+---
+subtitle: Feedback policy design
+author: Christopher L. Cahill <br> Associate Director
+---
+
+## The Dark Arts of feedback policy design 
+
+![](images/dark.png){fig-align="center" width="1000" height="550"}
+
+["Did You Ever Hear The Tragedy Of Darth Plagueis The Wise?" *Star Wars: Episode III - Revenge of the Sith*]{.footerRight}
+
+## Objectives
+
+::: {style="font-size:26px"}
+-   A description of feedback control that we would share with grandma
+-   Understand what a harvest control rule is and why such rules are useful for managing natural resources
+-   Understand the importance of objectives: yield vs. HARA utility
+-   Introduce the omniscient manager
+-   Approximation in policy space
+    -   Approximate linear and rectilinear harvest control rules
+:::
+
+## Feedback policies (harvest control rules)
+
+::: {style="font-size:28px"}
+-   Feedback policies (also called harvest control rules) are agreed-upon, transparent, mathematical equations that adjust harvest in response to changes in stock size
+    -   Intended to meet explicit management objectives (e.g., stable yield, rebuilding, consistent catches)\
+    -   Stock size may change due to environmental variability or fishing pressure\
+    -   Managers often implement them by setting total allowable catches (TACs)
+-   Some agencies (e.g., NOAA, DFO) use default harvest control rules
+    -   These use estimates like Fmsy and Bmsy (or proxies)\
+    -   Those values are plugged into a standard rule structure adopted by the agency\
+    -   Often justified as being "precautionary"\
+    -   Analysts run simulations to explore tradeoffs using tools like Management Strategy Evaluation (MSE)
+-   You can set up and explore these policies using the tools you already have
+-   Potential problem(s) with MSE
+
+[Hilborn and Walters 1992; Walters and Hilborn 1978; Walters 1986; Restrepo and Powers 1999]{.footerRight}
+:::
+
+## Is there another way?
+
+![](images/morpheus.png){fig-align="center" width="1000" height="550"}
+
+["You take the red pill – you stay in Wonderland, and I show you how deep the rabbit hole goes." *Morpheus* in *The Matrix*.]{.footerRight}
+
+## [Multi-stage decision problems are hard]{style="font-size:80%"}
+
+::::::: {style="font-size:24px"}
+::: callout-quote
+> “From a teleological point of view the particular numerical solution of any particular set of equations is of far less importance than the understanding of the *nature* of the solution.”\
+> — Richard Bellman
+:::
+
+:::: callout-quote
+> “In view of all that we have said in the foregoing sections, the many obstacles we appear to have surmounted, what casts the pall over our victory celebration? It is the curse of dimensionality, a malediction that has plagued the scientist from the earliest days."\
+> — Richard Bellman
+
+::: callout-quote
+> “Turning to the succor of modern computing machines, let us renounce all analytic tools”\
+> — Richard Bellman
+:::
+::::
+
+::: callout-quote
+> “Problems worthy of attack prove their worth by fighting back.”\
+> — Paul Erdős
+:::
+:::::::
+
+## Feedback policy design
+
+::: {style="font-size:28px"}
+-   There exists a rich history and literature of developing feedback policies to regulate human exploitation in managed systems
+
+-   Recommended reading:
+
+    1.  Walters 1986, chapter on feedback policies
+
+    2.  Hilborn and Walters 1992, chapter on designing effective fisheries management systems
+
+    3.  Quinn and Deriso 1999, chapter 11 on optimal harvesting
+
+    4.  Walters and Martell 2001, chapters 2-4
+
+    5.  Williams et al. 2002. Analysis and management of animal populations, chapters 21, 22, 24, 25
+
+Walleye example: <https://github.com/ChrisFishCahill/managing-irf-complexity/tree/main>
+:::
+
+## [Many ways to solve the harvesting problem]{style="font-size:80%"}
+
+::: {style="font-size:26px"}
+-   Equilibrium and simulation based $F_{MSY}$ and $MSY$ [✅]{style="color:green"}
+
+Feedback control (dynamic fishing policies), which has direct linkages to adaptive management
+
+-   *Optimal control*: solve for exact optimal actions assuming perfect state knowledge
+
+    -   dynamic programming
+    -   analytical solutions (rare) [✅]{style="color:green"}
+
+-   *Open-loop optimization*: simulate dynamics forward in time, choose the full time series of actions
+
+    -   omniscient manager, estimate all exploitation rates Uₜ under known future recruitment
+
+    -   approximation in policy space: estimate within a constrained rule class such as a fixed harvest control rule
+
+-   *Reinforcement learning*: learn or approximate optimal policies from interaction with environment, beyond the scope of this class
+
+[Hilborn and Walters 1992; Walters and Hilborn 1978; Walters 1986; Montealagre-Mora et al. 2025]{.footerRight}
+:::
+
+## [Harvesting theory, dynamic programming, and optimal solutions]{style="font-size:80%"}
+
+::: {style="font-size:27px"}
+-   A large body of theoretical work on optimal harvesting strategies for dynamic populations shows a consistent result: **optimal policies tend to reduce harvest when population size declines, and increase it when population size grows** (e.g., Walters 1975; Walters and Hilborn 1978).
+
+-   These results often come from dynamic programming approaches, where the optimal action is derived by solving a recursive optimization problem. Many such solutions recommend adjusting harvest as a **simple function of biomass or abundance**\
+    (e.g., Clark 1974; Clark and De Pree 1979; Mangel 1984; Moxnes 2002).
+
+-   This is surprising—because complex systems might seem to require complex strategies—but much of the work from the 1970s and 1980s showed that **simple feedback policies** often perform well or are even optimal (e.g., Walters 1986; Hilborn and Walters 1992).
+
+-   This body of work forms a large part of the theoretical basis of the *de facto* precautionary rules used by e.g., NOAA, DFO, and others.
+:::
+
+## [Harvesting theory, dynamic programming, and optimal solutions]{style="font-size:80%"}
+
+::: {style="font-size:27px"}
+-   A large body of theoretical work on optimal harvesting strategies for dynamic populations shows a consistent result: **optimal policies tend to reduce harvest when population size declines, and increase it when population size grows** (e.g., Walters 1975; Walters and Hilborn 1978).
+
+-   These results often come from dynamic programming approaches, where the optimal action is derived by solving a recursive optimization problem. Many such solutions recommend adjusting harvest as a **simple function of biomass or abundance**\
+    (e.g., Clark 1974; Clark and De Pree 1979; Mangel 1984; Moxnes 2002).
+
+-   This is surprising—because complex systems might seem to require complex strategies—but much of the work from the 1970s and 1980s showed that **simple feedback policies** often perform well or are even optimal (e.g., Walters 1986; Hilborn and Walters 1992).
+
+-   This body of work forms a large part of the theoretical basis of the *de facto* precautionary rules used by e.g., NOAA, DFO, and others.
+    - Why are they precautionary? 
+:::
+
+## Feedback policy design: the autopilot analogy
+
+::: {style="font-size:28px"}
+-   Think of a harvest control rule like designing an autopilot system
+
+-   The goal: create a **mathematical rule** that links **measurements from the environment** (e.g., altitude, wind, speed) to **actions** (e.g., turning, accelerating)
+
+-   This rule is a **feedback policy** — it responds to where the system is, and tries to steer it toward a desired outcome
+
+-   In the plane, the “environment” is physics; in fisheries, it’s the population dynamics of the targeted population
+:::
+
+## From autopilot to fisheries management
+
+::: {style="font-size:28px"}
+-   In aircraft, sensors report wind speed, altitude, heading, etc.\
+    → In fisheries, we use **surveys** and **stock assessments** to estimate stock size and trends\
+-   A good autopilot increases lift if the plane is dropping, or turns right if wind pushes it left\
+-   Similarly, a good harvest policy reduces catch if stock size is low, or allows more harvest if stock size is high\
+-   Both systems aim to use feedback to **guide** the system toward its goal (safe flight or sustainable harvest or whatever goal you want)
+
+<br>
+
+-   Designing a "controller" for a nonlinear dynamical system.\
+    → Beyond this point, logic starts to fray: many counter-intuitive results
+:::
+
+## On the need for explicit objectives
+
+::: {style="font-size:27px"}
+-   Like autopilot, harvest control rules need clear objectives to function\
+-   Without agreed-upon objectives, feedback policy design stalls\
+-   Defining objectives is hard
+
+[see also Hilborn and Walters 1992; Walters and Parma 1996]{.footerRight}
+:::
+
+## On the need for explicit objectives
+
+::: {style="font-size:27px"}
+-   Like autopilot, harvest control rules need clear objectives to function\
+-   Without agreed-upon objectives, feedback policy design stalls\
+-   Defining objectives is hard
+
+<br>
+
+-   Many fisheries lack explicit objectives\
+-   We'll use two provisional performance criteria to explore tradeoffs:
+    -   Maximum Average Yield (MAY)\
+    -   HARA utility (favoring consistency in catches)
+-   These objectives bracket a range from aggressive yield-maximizing policies to preferences for stable catches and thus help to highlight **tradeoffs** associated with different policy options
+
+[see also Hilborn and Walters 1992; Walters and Parma 1996]{.footerRight}
+:::
+
+## Maximum Average Yield (MAY) objective
+
+::: {style="font-size:27px"}
+-   MAY is the stochastic analog of MSY and aims to maximize long-term average yield
+
+-   Optimal policies often resemble a **fixed escapement rule**:
+
+    -   No harvest below a biomass threshold
+
+    -   Harvest aggressively above that threshold
+
+-   Benefits: high average yield from dynamic populations
+
+-   Drawbacks: can cause **fisheries closures** when biomass drops below threshold
+
+-   Yield-focused, but **variable and risky** from a harvester's perspective
+
+<br>
+
+-   Regardless of our individual thoughts on this objective, we can probably agree that this isn't your grandad's MSY and harvesting at rates above it is unwise
+:::
+
+## HARA utility objective
+
+::: {style="font-size:27px"}
+-   **HARA** = Hyperbolic Absolute Risk Aversion
+
+    -   A utility function used to model risk-averse preferences for catch\
+    -   Values **predictability** over high but uncertain outcomes
+
+-   Annual utility:
+
+    $$
+    \text{utility}_t = \text{yield}_t^{\text{upow}}, \quad 0 < \text{upow} \le 1
+    $$
+
+-   upow → 1.0 utility seeks to maximize yield
+
+-   Lower upow → stronger aversion to variability in catch
+
+-   Interpretation:\
+    A harvester with upow = 0.6 would prefer a guaranteed catch of \~\$24,600\
+    over a 50/50 gamble between \$0 and \$100,000
+
+-   Often between 0.3-0.6 for many harvesters
+:::
+
+## Estimating your own risk aversion
+
+::: {style="font-size:29px"}
+-   Imagine you’re indifferent between:
+
+    -   A 50/50 chance of **0** or **H** fish\
+    -   A guaranteed catch of **X** fish
+
+-   Then: $$
+    X^{\text{upow}} = 0.5 \cdot H^{\text{upow}}  
+    \Rightarrow \left( \frac{X}{H} \right)^{\text{upow}} = 0.5
+    $$
+
+-   Solving for upow: $$
+    \text{upow} = \frac{\ln(0.5)}{\ln(X) - \ln(H)}
+    $$
+
+[<https://en.wikipedia.org/wiki/Hyperbolic_absolute_risk_aversion>]{.footerRight}
+:::
+
+## Estimating your own risk aversion
+
+::: {style="font-size:33px"}
+-   In R
+
+```{R echo = T, eval = T}
+get_upow <- function(X, H) {
+  # X = guaranteed catch
+  # H = high value of 50/50 gamble (other outcome is 0)
+  log(0.5) / (log(X) - log(H))
+}
+
+# Example: Cahill is indifferent between 3 guaranteed and 
+# a 50/50 gamble between 0 or 20 walleye
+get_upow(X = 3, H = 20)
+
+```
+:::
+
+## MAY vs. HARA: some general themes
+
+```{r, echo=FALSE, eval=TRUE, fig.width=10, fig.height=4.5}
+
+# stock range
+stock <- seq(0, 500, length.out = 200)
+
+# Yield-maximizing policy (fixed escapement)
+escapement <- 125
+tac_yield <- pmax(stock - escapement, 0)
+ut_yield <- tac_yield / stock
+ut_yield[stock == 0] <- 0  # handle division by 0
+
+# HARA utility policy (smooth asymptote to max Ut)
+Umax <- 0.25
+tac_hara <- stock * Umax * (1 - exp(-stock / 100))
+ut_hara <- tac_hara / stock
+ut_hara[stock == 0] <- 0
+
+# layout
+par(mfrow = c(1, 2), mar = c(4, 4.5, 2, 1))
+
+# Plot 1: TAC vs stock
+plot(stock, tac_yield, type = "l", lwd = 2, col = "dodgerblue3",
+     xlab = "Stock size", ylab = "Total allowable catch (TAC)",
+     ylim = c(0, max(tac_yield, tac_hara)), yaxs = "i", xaxs = "i",
+     main = "TAC vs Stock size")
+lines(stock, tac_hara, lwd = 2, col = "darkorchid")
+abline(v = escapement, col = "dodgerblue3", lty = 2)
+legend("topleft", legend = c("Yield-maximizing",
+                             "Risk-averse"),
+       col = c("dodgerblue3", "darkorchid"), lwd = 2, bty = "n")
+
+# Plot 2: Ut vs stock
+plot(stock, ut_yield, type = "l", lwd = 2, col = "dodgerblue3",
+     xlab = "Vulnerable biomass (vb)", ylab = "Exploitation rate (Ut)",
+     ylim = c(0, max(ut_yield, ut_hara)), yaxs = "i", xaxs = "i",
+     main = "Ut vs Stock size")
+lines(stock, ut_hara, lwd = 2, col = "darkorchid")
+abline(v = escapement, col = "dodgerblue3", lty = 2)
+```
+
+[see also Hilborn and Walters 1992; Walters and Parma 1996; Walters and Martell 2004]{.footerLeft}
+
+-   Ut = TAC / Stock Size
+
+## Output vs. direct U control in fisheries management
+
+::: {style="font-size:28px"}
+-   ***Output control***. Set a quota or total allowable catch each year.
+
+    -   In this case, stock assessments attempt to estimate total abundance and recruitment.
+
+-   ***Input or direct exploitation rate control***. Develop regulations to directly control exploitation rate.
+
+    -   In this management-chain, we worry about growth, vulnerability, M, and the intercept of the stock-recruitment relationship.
+        -   time/area closures
+        -   direct monitoring of exploitation rate through tagging studies
+        -   good estimates of total abundance not necessarily required
+
+    - Assume that F to be implemented is without error, e.g. via effort controls with known catchability
+
+-   There are many tactics for effective harvest regulation.
+
+[Walters and Martell 2004 section 3.3; see Chapter 4]{.footerRight}
+:::
+
+## Output vs. direct U control 
+
+![](images/tactics.png){fig-align="center" width="1000" height="550"}
+
+[Input vs. output control. Walters and Martell 2004; Chapter 4]{.footerRight}
+
+
+## Can output control go wrong?
+
+![](images/cod.png){fig-align="center" width="1000" height="550"}
+
+[On the need to consider assessment error. Walters and Martell 2004; Chapter 4]{.footerRight}
+
+## The Omniscient Manager
+
+::: {style="font-size:26px"}
+-   Let us ask pose the following thought-experiment
+    -   *Suppose a manager knew future recruitment, mortality, and system dynamics. What sequence of instantaneous fishing mortality Fₜ would they set to maximize long-term objectives?*
+    -   What would you do differently if you knew what was going to happen?
+:::
+
+## The Omniscient Manager
+
+:::: {style="font-size:26px"}
+::: {.fragment .fade-in style="font-size:90%;"}
+We assume the manager knows all future recruitment deviations $w_t$,\
+and chooses fishing mortalities $\{F_t\}_{t=2}^T$ **up front** to maximize utility.
+
+$$
+\max_{\{F_t\}} \; \frac{1}{T} \sum_{t=2}^T \left(Y_t\right)^{\text{upow}}
+$$
+
+where T is the time horizon, upow describes risk aversion, and $Y_t$ is yield at time t. Also note that population dynamics are governed by our standard age-structured model (see earlier presentations).
+
+Assumptions:
+
+-   In our case, fishing starts in year two
+-   All future stochastic deviations $w_t$ are **known** (perfect foresight)
+-   $F_t$ is **not adaptive** — it's selected all at once
+-   This is an **open-loop** benchmark for best possible management under full information
+
+Even though the omniscient manager finds the optimal $\{F_t\}$, this policy is not implementable in real systems. It assumes we know future surprises.
+
+This approach is almost infinitely adaptable: can you think of some things you might want to test?
+:::
+::::
+
+## Exercise: The Omniscient Perch Manager
+
+:::: {style="font-size:26px"}
+::: {.fragment .fade-in style="font-size:90%;"}
+People keep asking us how to assess and manage perch 🙃
+
+Let's play a game and see how an Omniscient Manager might manage our yellow perch with stochastic recruitment 🤡
+
+Specifically, do the standard theoretical findings hold true with perch:
+
+```{r, echo=FALSE, eval=TRUE, fig.width=10, fig.height=4.5}
+
+# stock range
+stock <- seq(0, 500, length.out = 200)
+
+# Yield-maximizing policy (fixed escapement)
+escapement <- 125
+tac_yield <- pmax(stock - escapement, 0)
+ut_yield <- tac_yield / stock
+ut_yield[stock == 0] <- 0  # handle division by 0
+
+# HARA utility policy (smooth asymptote to max Ut)
+Umax <- 0.25
+tac_hara <- stock * Umax * (1 - exp(-stock / 100))
+ut_hara <- tac_hara / stock
+ut_hara[stock == 0] <- 0
+
+# layout
+par(mfrow = c(1, 2), mar = c(4, 4.5, 2, 1))
+
+# Plot 1: TAC vs stock
+plot(stock, tac_yield, type = "l", lwd = 2, col = "dodgerblue3",
+     xlab = "Stock size", ylab = "Total allowable catch (TAC)",
+     ylim = c(0, max(tac_yield, tac_hara)), yaxs = "i", xaxs = "i",
+     main = "TAC vs Stock size")
+lines(stock, tac_hara, lwd = 2, col = "darkorchid")
+abline(v = escapement, col = "dodgerblue3", lty = 2)
+legend("topleft", legend = c("Yield-maximizing",
+                             "Risk-averse"),
+       col = c("dodgerblue3", "darkorchid"), lwd = 2, bty = "n")
+
+# Plot 2: Ut vs stock
+plot(stock, ut_yield, type = "l", lwd = 2, col = "dodgerblue3",
+     xlab = "Vulnerable biomass (vb)", ylab = "Exploitation rate (Ut)",
+     ylim = c(0, max(ut_yield, ut_hara)), yaxs = "i", xaxs = "i",
+     main = "Ut vs Stock size")
+lines(stock, ut_hara, lwd = 2, col = "darkorchid")
+abline(v = escapement, col = "dodgerblue3", lty = 2)
+```
+:::
+::::
+
+## Feedback control
+
+::: {style="font-size:26px"}
+-   Surely we are not omniscient
+-   We cannot implement an omniscient manager policy (too complex)
+-   Can we instead approximate these answers using simpler feedback policies that adapt to observed outcomes?
+:::
+
+## Approximation in policy space
+
+::: {style="font-size:26px"}
+-   Specify harvest control rules that determine $U_t$ directly as a function of stock size
+-   Estimate parameters of these rules to maximize an objective over a finite time horizon (e.g. yield, HARA utility)
+-   Use **smooth approximations** (e.g. softplus) to ensure differentiability and compatibility with numerical optimization
+
+[see also Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992]{.footerLeft}
+:::
+
+## Approximation in policy space
+
+::: {style="font-size:26px"}
+-   Specify harvest control rules that determine $U_t$ directly as a function of stock size
+-   Estimate parameters of these rules to maximize an objective over a finite time horizon (e.g. yield, HARA utility)
+-   Use **smooth approximations** (e.g. softplus) to ensure differentiability for compatibility with numerical optimization
+-   Recognize that the approach differs under:
+    -   **Input control**: $U_t$ (or $F_t$) is implemented, and the resulting catch is implied.
+    -   **Output control**: where $\text{TAC}_t$ is implemented and the resulting $U_t$ (or $F_t$) is implied from harvest over true biomass
+    
+[see also Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992]{.footerLeft}
+:::
+
+## Approximation in policy space
+
+::: {style="font-size:26px"}
+-   Specify harvest control rules that determine $U_t$ directly as a function of stock size
+-   Estimate parameters of these rules to maximize an objective over a finite time horizon (e.g. yield, HARA utility)
+-   Use **smooth approximations** (e.g. softplus) to ensure differentiability for compatibility with numerical optimization
+-   Recognize that the approach differs under:
+    -   **Input control**: where $U_t$ is implemented and $\text{TAC}_t$ is implied
+    -   **Output control**: where $\text{TAC}_t$ is implemented and $U_t$ is implied
+-   Can be used to:
+    -   Compare harvest strategies
+    -   Evaluate robustness under uncertainty, implementation, or observation error
+    -   Explore trade-offs between yield, variability, and risk
+
+[see also Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992]{.footerLeft}
+:::
+
+## Approximation in policy space
+
+::: {style="font-size:26px"}
+-   Specify harvest control rules that determine $U_t$ directly as a function of stock size
+-   Estimate parameters of these rules to maximize an objective over a finite time horizon (e.g. yield, HARA utility)
+-   Use **smooth approximations** (e.g. softplus) to ensure differentiability for compatibility with numerical optimization
+-   Recognize that the approach differs under:
+    -   **Input control**: where $U_t$ is implemented and $\text{TAC}_t$ is implied
+    -   **Output control**: where $\text{TAC}_t$ is implemented and $U_t$ is implied
+-   Can be used to:
+    -   Compare harvest strategies
+    -   Evaluate robustness under uncertainty, implementation, or observation error
+    -   Explore trade-offs between yield, variability, and risk
+-   Very much NOT estimating population dynamics, but rather the parameters of a feedback rule that controls or modulates the dynamics of the population(s) in question 🤯
+
+[see also Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992]{.footerLeft}
+:::
+
+## Why smooth approximations?
+
+::: {style="font-size:26px"}
+
+- Harvest control rules often involve non-differentiable functions like $\max(0, x)$ 
+- These create problems for automatic differentiation optimization
+- Smooth approximations (e.g. **softplus**) resolve this:
+
+  $$
+  \max(0, x) \approx \frac{1}{\beta} \log(1 + e^{\beta x})
+  $$
+
+- Benefits:
+  - Fully differentiable with respect to all parameters
+  - Retains shape of original function as $\beta \to \infty$
+  - Compatible with automatic differentiation tools (e.g. ADMB, TMB, RTMB)
+  
+[*The road to enlightenment is sometimes differentiable.* Cahill, during a prolonged episode of HCR-induced despair.]{.footerRight}
+
+:::
+
+## Smooth approximation of linear HCR
+
+::: {style="font-size:26px"}
+
+**Linear control rule (on total catch):**
+
+$$
+\text{TAC}_t = \max\left(0,\; c \cdot (\text{VB}_t - \text{LRP})\right)
+$$
+
+Converted to an exploitation rate:
+
+$$
+U_t = \frac{1}{\text{VB}_t} \cdot \max\left(0,\; c \cdot (\text{VB}_t - \text{LRP})\right)
+$$
+
+---
+
+**Smooth approximation using softplus:**
+
+$$
+U_t = \frac{1}{\text{VB}_t} \cdot \frac{1}{\beta} \cdot \log\left(1 + \exp\left[\beta \cdot c \cdot (\text{VB}_t - \text{LRP})\right]\right)
+$$
+
+Here, $c$ controls the slope, $\beta$ controls the smoothness, and $\text{LRP}$ is the lower reference point. $VB_t$ is the biomass vulnerable to fishing at time t. This form smoothly ramps up the catch rate as biomass exceeds LRP.
+
+When does this form assume harvest occurs? 
+
+:::
+
+## Ramped harvest control rule (HCR)
+
+::: {style="font-size:26px"}
+
+We define a control rule with a ramp up to a capped exploitation rate:
+
+$$
+U_t =
+\begin{cases}
+0, & VB_t \le \text{LRP} \\[6pt]
+c \cdot (VB_t - \text{LRP}), & \text{LRP} < VB_t < B_{\text{trigger}} \\[6pt]
+u_{\text{cap}}, & VB_t \ge B_{\text{trigger}}
+\end{cases}
+$$
+
+with slope:
+
+$$
+c = \frac{u_{\text{cap}}}{B_{\text{trigger}} - \text{LRP}}
+$$
+
+- $VB_t$: observed vulnerable biomass  
+- $\text{LRP}$: lower reference point  
+- $B_{\text{trigger}}$: biomass where full exploitation begins  
+- $u_{\text{cap}}$: maximum exploitation rate  
+- $c$: slope of the ramp  
+
+:::
+
+## Smooth approximation of ramped HCR
+
+::: {style="font-size:26px"}
+
+**Step 1: smooth ramp-up from zero (softplus):**
+
+$$
+soft_{ramp}(VB_t) =
+\frac{1}{\beta} \log\left(1 + \exp\left[\beta \cdot c \cdot (VB_t - \text{LRP})\right]\right)
+$$
+
+This approximates:
+
+$$
+\max(0,\; c \cdot (VB_t - \text{LRP}))
+$$
+
+**Step 2: smooth upper cap (soft-min):**
+
+$$
+U_t =
+u_{\text{cap}} -
+\frac{1}{\beta} \log\left(1 + \exp\left[\beta \cdot (u_{\text{cap}} - soft_{ramp})\right]\right)
+$$
+
+This approximates:
+
+$$
+\min(u_{\text{cap}},\; soft_{ramp})
+$$
+
+:::
+
+## Final exploitation rate and notes
+
+::: {style="font-size:26px"}
+
+**Step 3: convert to fishing mortality**
+
+$$
+F_t = -\log(1 - U_t)
+$$
+
+---
+
+**Notes:**
+
+- $\beta$ controls **smoothness** of transitions  
+   – higher $\beta$ → sharper transitions (closer to rectilinear form)  
+- This form is **differentiable** and works well in optimization  
+- If harvest occurs gradually over the year, apply to average biomass using Pope's approximation:  
+  $$ VB_t \cdot e^{-M/2} $$
+  
+[Pope's approximation: Hilborn and Walters 1992]{.footerRight}
+
+:::
+
+## Exercise
+
+::: {style="font-size:26px"}
+
+- Play with input control scripts for linear and rectilinear harvest control rules
+- Explore how objectives (yield vs. HARA) changes feedback policy shape
+- Does observation error change your answers? If so, how?
+- Discuss value of information and the dynamics of uncertainty in policy design
+
+:::
+
+
+## Thank you
+
+![](images/nosferatu.jpg){fig-align="center" width="1000" height="550"}
+
+[Chris going to sleep for eternity. *Nosferatu* 1922.]{.footerLeft}
+
+## References
+
+::: {style="font-size:25px"}
+-   Clark, C.W. 1974. Mathematical bioeconomics. In Mathematical Problems in Biology. Springer. pp. 29-45.
+
+-   Clark, C.W., and De Pree, J.D. 1979. A simple linear model for the optimal exploitation of renewable resources. Applied Mathematics and Optimization 5(1): 181-196.
+
+-   Hilborn and Walters 1992. Quantitative fisheries stock assessment: choice, dynamics, and uncertainty.
+
+-   Hilborn et al. 1995. Sustainable exploitation of renewable resources. Annual Review of Ecology and Systematics, Vol. 26, pp. 45-67.
+
+-   Hilborn et al. 2015. When is a fishery sustainable? CJFAS.
+
+-   Mangel, M. 1984. Decision and control in uncertain resource systems. Academic Press, Inc.
+
+-   Moxnes 2002. Policy sensitivity analysis: simple vs. complex models. Centre for Fisheries Economics Discussion Paper No. 13/2002.
+
+-   Montealegre-Mora et al. *Accepted*. Using machine learning to inform harvest control rule design in complex fishery settings <https://arxiv.org/abs/2412.12400>.
+:::
+
+## References
+
+::: {style="font-size:25px"}
+-   Quinn and Deriso 1999. Quantitative Fisheries Dynamics. Chapter 11.
+
+-   Restrepo and Powers 1999. Precautionary control rules in US fisheries management: specification and performance. ICES Journal of Marine Science.
+
+-   Walters 1975. Optimal harvest strategies for salmon in relation to environmental variability and uncertainty about production parameters. J. Fish. Res. Board Can.
+
+-   Walters and Hilborn 1978. Ecological optimization and adaptive management
+
+-   Walters 1986. Adaptive management of renewable resources.
+
+-   Walters and Martell 2004. Fisheries ecology and management.
+
+-   Walters and Parma 1996. Fixed exploitation rate strategies for coping with effects of climate change. Canadian Journal of Fisheries and Aquatic Sciences.
+:::
