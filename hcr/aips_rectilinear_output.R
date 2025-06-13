@@ -27,13 +27,16 @@ sdr <- 0.6
 set.seed(1)
 wt <- rnorm(n_years - 1, 0, sdr)
 
-# objective function with precautionary HCR
+sigma_obs <- 1e-3 # observation error SD
+UMAX <- 0.9 # implementation cap on achievable U
+beta <- 80 # softplus approximation
+
+# objective function with precautionary HCR and output control logic
 f <- function(par) {
   getAll(data, par)
   lrp <- exp(log_lrp)
   btrigger <- exp(log_btrigger)
-  ucap <- 1 / (1 + exp(-logit_ucap)) # logit scale ensures 0 < ucap < 1
-  beta <- 80
+  ucap <- 1 / (1 + exp(-logit_ucap)) # HCR cap on target U
 
   log_n <- matrix(-Inf, n_years, n_ages)
   ssb <- yield <- vul_bio <- numeric(n_years)
@@ -44,12 +47,31 @@ f <- function(par) {
   vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
 
   for (t in 2:n_years) {
-    vb <- vul_bio[t - 1]
+    vb_true <- vul_bio[t - 1]
+
+    # step 0: observe biomass with error
+    vb_obs <- vb_true * exp(rnorm(1, 0, sigma_obs))
+
+    # step 1: target U from HCR using observed vb
     slope <- ucap / (btrigger - lrp)
-    ramp <- slope * (vb - lrp)
+    ramp <- slope * (vb_obs - lrp)
     soft_ramp <- (1 / beta) * log(1 + exp(beta * ramp))
-    Ut[t - 1] <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
-    Ft[t - 1] <- -log(1 - Ut[t - 1])
+    u_target <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
+
+    # step 2: compute TAC from observed vb and Ftarget
+    tac <- vb_obs * exp(-M / 2) * u_target
+
+    # step 3: compute implied U from TAC and true vb
+    u_implied <- tac / (vb_true * exp(-M / 2))
+
+    # step 4: apply implementation constraint UMAX via soft cap
+    u_realized <- -1 / beta * log(exp(-beta * u_implied) + exp(-beta * UMAX))
+
+    # final Ft and Ut used in dynamics
+    Ut[t - 1] <- u_realized
+    Ft[t - 1] <- -log(1 - u_realized)
+
+    # population dynamics
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
     for (a in 2:n_ages) {
@@ -67,6 +89,7 @@ f <- function(par) {
     vul_bio[t] <- sum(n * wa * vul)
     yield[t] <- sum(n * wa * Ft[t - 1] * vul / Zt * (1 - exp(-Zt)))
   }
+
   REPORT(Ut)
   REPORT(yield)
   REPORT(vul_bio)
@@ -108,7 +131,7 @@ cat(F)
 # fit HARA utility rule
 data$upow <- 0.6
 par <- list(
-  log_lrp = log(0.3),
+  log_lrp = log(0.1),
   log_btrigger = log(1.0),
   logit_ucap = qlogis(0.15)
 )

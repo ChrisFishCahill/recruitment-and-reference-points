@@ -27,17 +27,13 @@ sdr <- 0.6
 set.seed(1)
 wt <- rnorm(n_years - 1, 0, sdr)
 
-sigma_obs <- 0.2 # observation error SD
-UMAX <- 0.9 # implementation cap on achievable U
-sigma_obs <- 0.2 # observation error SD
-beta <- 80 # softplus approximation
-
-# objective function with precautionary HCR and output control logic
+# objective function with precautionary HCR
 f <- function(par) {
   getAll(data, par)
   lrp <- exp(log_lrp)
   btrigger <- exp(log_btrigger)
-  ucap <- 1 / (1 + exp(-logit_ucap)) # HCR cap on target U
+  ucap <- 1 / (1 + exp(-logit_ucap)) # logit scale ensures 0 < ucap < 1
+  beta <- 80
 
   log_n <- matrix(-Inf, n_years, n_ages)
   ssb <- yield <- vul_bio <- numeric(n_years)
@@ -48,31 +44,19 @@ f <- function(par) {
   vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
 
   for (t in 2:n_years) {
-    vb_true <- vul_bio[t - 1]
-
-    # step 0: observe biomass with error
-    vb_obs <- vb_true * exp(rnorm(1, 0, sigma_obs))
-
+    # inputs
+    vb <- vul_bio[t - 1]
+    
     # step 1: target U from HCR using observed vb
     slope <- ucap / (btrigger - lrp)
-    ramp <- slope * (vb_obs - lrp)
+    ramp <- slope * (vb - lrp)
     soft_ramp <- (1 / beta) * log(1 + exp(beta * ramp))
     u_target <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
 
-    # step 2: compute TAC from observed vb and Ftarget
-    tac <- vb_obs * exp(-M / 2) * u_target
-
-    # step 3: compute implied U from TAC and true vb
-    u_implied <- tac / (vb_true * exp(-M / 2))
-
-    # step 4: apply implementation constraint UMAX via soft cap
-    u_realized <- -1 / beta * log(exp(-beta * u_implied) + exp(-beta * UMAX))
-
     # final Ft and Ut used in dynamics
-    Ut[t - 1] <- u_realized
-    Ft[t - 1] <- -log(1 - u_realized)
-
-    # population dynamics
+    Ut[t - 1] <- u_target
+    Ft[t - 1] <- -log(1 - u_target)
+  
     Zt <- Ft[t - 1] * vul + M
     log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
     for (a in 2:n_ages) {
@@ -90,7 +74,6 @@ f <- function(par) {
     vul_bio[t] <- sum(n * wa * vul)
     yield[t] <- sum(n * wa * Ft[t - 1] * vul / Zt * (1 - exp(-Zt)))
   }
-
   REPORT(Ut)
   REPORT(yield)
   REPORT(vul_bio)
@@ -137,6 +120,7 @@ par <- list(
   logit_ucap = qlogis(0.15)
 )
 obj_hara <- MakeADFun(f, par, data = data)
+obj_hara$fn()
 opt_hara <- nlminb(obj_hara$par, obj_hara$fn, obj_hara$gr,
   control = list(eval.max = 10000, iter.max = 10000)
 )
@@ -261,3 +245,4 @@ legend("topright",
   legend = c("Yield", "HARA"),
   col = c("dodgerblue3", "darkorchid3"), pch = c(16, 1), lty = 1, bty = "n"
 )
+
