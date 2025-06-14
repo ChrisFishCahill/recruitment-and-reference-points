@@ -26,6 +26,7 @@ n_years <- 1000
 sdr <- 0.6
 set.seed(1)
 wt <- rnorm(n_years - 1, 0, sdr)
+beta <- 80
 
 # objective function with precautionary HCR
 f <- function(par) {
@@ -33,46 +34,40 @@ f <- function(par) {
   lrp <- exp(log_lrp)
   btrigger <- exp(log_btrigger)
   ucap <- 1 / (1 + exp(-logit_ucap)) # logit scale ensures 0 < ucap < 1
-  beta <- 80
-
   log_n <- matrix(-Inf, n_years, n_ages)
-  ssb <- yield <- vul_bio <- numeric(n_years)
+  ssb <- yield <- vul_bio <- numeric(n_years - 1)
   Ft <- Ut <- numeric(n_years - 1)
-
   log_n[1, ] <- log(ninit)
-  ssb[1] <- sum(exp(log_n[1, ]) * mat * wa)
-  vul_bio[1] <- sum(exp(log_n[1, ]) * wa * vul)
-
-  for (t in 2:n_years) {
+  for (t in 1:(n_years - 1)) {
     # inputs
-    vb <- vul_bio[t - 1]
-    
+    ssb[t] <- sum(exp(log_n[t, ]) * mat * wa)
+    vul_bio[t] <- sum(exp(log_n[t, ]) * wa * vul)
+
     # step 1: target U from HCR using observed vb
     slope <- ucap / (btrigger - lrp)
-    ramp <- slope * (vb - lrp)
+    ramp <- slope * (vul_bio[t] - lrp)
     soft_ramp <- (1 / beta) * log(1 + exp(beta * ramp))
     u_target <- ucap - (1 / beta) * log(1 + exp(beta * (ucap - soft_ramp)))
 
     # final Ft and Ut used in dynamics
-    Ut[t - 1] <- u_target
-    Ft[t - 1] <- -log(1 - u_target)
-  
-    Zt <- Ft[t - 1] * vul + M
-    log_n[t, 1] <- ln_alpha + log(ssb[t - 1]) - br * ssb[t - 1] + wt[t - 1]
+    Ut[t] <- u_target
+    Ft[t] <- -log(1 - u_target)
+    Zt <- Ft[t] * vul + M
+    yield[t] <- sum(exp(log_n[t, ]) * wa * Ft[t] * vul / Zt * (1 - exp(-Zt)))
+
+    # population dynamics
     for (a in 2:n_ages) {
-      log_n[t, a] <- log_n[t - 1, a - 1] - Zt[a - 1]
+      log_n[t + 1, a] <- log_n[t, a - 1] - Zt[a - 1]
     }
-    log_n[t, n_ages] <- log(
-      exp(log_n[t, n_ages]) + exp(log_n[t - 1, n_ages]) * exp(-Zt[n_ages])
+    log_n[t + 1, n_ages] <- log(
+      exp(log_n[t + 1, n_ages]) +
+        exp(log_n[t, n_ages]) * exp(-Zt[n_ages])
     )
+    log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - br * ssb[t] + wt[t]
     if (t %% 100 == 0) {
       shock <- -10
       log_n[t, ] <- log_n[t, ] + shock
     }
-    n <- exp(log_n[t, ])
-    ssb[t] <- sum(n * mat * wa)
-    vul_bio[t] <- sum(n * wa * vul)
-    yield[t] <- sum(n * wa * Ft[t - 1] * vul / Zt * (1 - exp(-Zt)))
   }
   REPORT(Ut)
   REPORT(yield)
@@ -138,83 +133,98 @@ cat(F)
 # jit <- replicate(100, doone())
 # boxplot(t(jit))
 
-# ---- helper ----
-softplus <- function(z, beta) (1 / beta) * log1p(exp(beta * z))
-beta <- 80
+## ---------- plotting ----------
 
-# extract fitted parameters
+# helper ----------------------------------------------------
+softplus <- function(z, beta) (1 / beta) * log1p(exp(beta * z))
+
+# extract fitted HCR parameters -----------------------------
+## yield fit
 lrp_y <- exp(opt_yield$par["log_lrp"])
 btrig_y <- exp(opt_yield$par["log_btrigger"])
 ucap_y <- 1 / (1 + exp(-opt_yield$par["logit_ucap"]))
 slope_y <- ucap_y / (btrig_y - lrp_y)
 
+## HARA fit
 lrp_h <- exp(opt_hara$par["log_lrp"])
 btrig_h <- exp(opt_hara$par["log_btrigger"])
 ucap_h <- 1 / (1 + exp(-opt_hara$par["logit_ucap"]))
 slope_h <- ucap_h / (btrig_h - lrp_h)
 
-# biomass vectors
+# biomass sequences for smooth fitted curves ----------------
+vb_seq_y <- seq(0.01, max(rep_yield$vul_bio), length.out = 200)
+vb_seq_h <- seq(0.01, max(rep_hara$vul_bio), length.out = 200)
+
+# predicted TAC and U(t) using the rectilinear soft-cap rule --
+pred_fun <- function(vb, slope, lrp, ucap) {
+  ramp <- slope * (vb - lrp)
+  soft_ramp <- softplus(ramp, beta)
+  Ut <- ucap - softplus(ucap - soft_ramp, beta)
+  TAC <- Ut * vb
+  list(Ut = Ut, TAC = TAC)
+}
+
+pred_y <- pred_fun(vb_seq_y, slope_y, lrp_y, ucap_y)
+pred_h <- pred_fun(vb_seq_h, slope_h, lrp_h, ucap_h)
+
+# convenience objects for scatter points --------------------
 vb_y <- rep_yield$vul_bio
 vb_h <- rep_hara$vul_bio
-vb_seq <- seq(0.001, max(c(vb_y, vb_h)) * 1.05, length.out = 300)
+TAC_y_obs <- rep_yield$yield # TAC = yield here
+TAC_h_obs <- rep_hara$yield
+Ut_y_obs <- rep_yield$Ut
+Ut_h_obs <- rep_hara$Ut
 
-# smooth predicted Ut
-ramp_y <- slope_y * (vb_seq - lrp_y)
-soft_ramp_y <- softplus(ramp_y, beta)
-Ut_y_pred <- ucap_y - softplus(ucap_y - soft_ramp_y, beta)
+# 2 × 2 panel figure ----------------------------------------
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
 
-ramp_h <- slope_h * (vb_seq - lrp_h)
-soft_ramp_h <- softplus(ramp_h, beta)
-Ut_h_pred <- ucap_h - softplus(ucap_h - soft_ramp_h, beta)
-
-# plot: Ut vs vb
-par(mfrow = c(2, 2), mar = c(4, 4.2, 2, 1))
-plot(vb_y[-1], rep_yield$Ut,
-  col = "dodgerblue3", pch = 16, cex = 0.4,
-  xlab = "Vulnerable biomass", ylab = "Exploitation rate (Ut)",
-  main = "Ut vs vb"
+# (1) TAC vs vb – yield objective
+plot(vb_y, TAC_y_obs,
+  pch = 16, col = "dodgerblue3", cex = 0.4,
+  xlab = "vulnerable biomass", ylab = "TAC",
+  main = "Yield objective"
 )
-points(vb_h[-1], rep_hara$Ut, col = "darkorchid3", pch = 1, cex = 0.4)
-lines(vb_seq, Ut_y_pred, col = "dodgerblue3", lwd = 2)
-lines(vb_seq, Ut_h_pred, col = "darkorchid3", lwd = 2)
-legend("bottomright",
-  legend = c("Yield", "HARA"),
-  col = c("dodgerblue3", "darkorchid3"), pch = c(16, 1), lty = 1, bty = "n"
+abline(v = lrp_y, col = "dodgerblue3", lty = 3)
+abline(v = btrig_y, col = "dodgerblue3", lty = 3)
+
+# (2) U(t) vs vb – yield objective
+plot(vb_y, Ut_y_obs,
+  pch = 16, col = "dodgerblue3", cex = 0.4,
+  xlab = "vulnerable biomass", ylab = "U(t)",
+  ylim = c(0, 1), xlim = c(0, 3.0),
+  main = "Yield objective"
 )
+abline(v = lrp_y, col = "dodgerblue3", lty = 3)
+abline(v = btrig_y, col = "dodgerblue3", lty = 3)
+lines(vb_seq_y, pred_y$Ut, col = "black", lwd = 2)
 
-# plot: Ft vs vb
-Ft_y <- rep_yield$Ft
-Ft_h <- rep_hara$Ft
-Ft_y_pred <- -log(1 - Ut_y_pred)
-Ft_h_pred <- -log(1 - Ut_h_pred)
-
-plot(vb_y[-1], rep_yield$Ft,
-  col = "dodgerblue3", pch = 16, cex = 0.4,
-  xlab = "Vulnerable biomass", ylab = "Fishing mortality (Ft)",
-  main = "Ft vs vb"
+# (3) TAC vs vb – HARA objective
+plot(vb_h, TAC_h_obs,
+  pch = 16, col = "darkorchid", cex = 0.4,
+  xlab = "vulnerable biomass", ylab = "TAC",
+  ylim = c(0, 5), xlim = c(0, max(TAC_y_obs)),
+  main = "HARA objective"
 )
-points(vb_h[-1], rep_hara$Ft, col = "darkorchid3", pch = 1, cex = 0.4)
-lines(vb_seq, Ft_y_pred, col = "dodgerblue3", lwd = 2)
-lines(vb_seq, Ft_h_pred, col = "darkorchid3", lwd = 2)
+abline(v = lrp_h, col = "darkorchid3", lty = 3)
+abline(v = btrig_h, col = "darkorchid", lty = 3)
 
-# plot: TAC vs vb
-TAC_y <- rep_yield$Ut * vb_y[-1]
-TAC_h <- rep_hara$Ut * vb_h[-1]
-TAC_y_pred <- Ut_y_pred * vb_seq
-TAC_h_pred <- Ut_h_pred * vb_seq
-
-plot(vb_y[-1], TAC_y,
-  col = "dodgerblue3", pch = 16, cex = 0.4,
-  xlab = "Vulnerable biomass", ylab = "TAC",
-  main = "TAC vs vb"
+# (4) U(t) vs vb – HARA objective
+plot(vb_h, Ut_h_obs,
+  pch = 16, col = "darkorchid", cex = 0.4,
+  xlab = "vulnerable biomass", ylab = "U(t)",
+  ylim = c(0, 1), xlim = c(0, 3.0),
+  main = "HARA objective"
 )
-points(vb_h[-1], TAC_h, col = "darkorchid3", pch = 1, cex = 0.4)
-lines(vb_seq, TAC_y_pred, col = "dodgerblue3", lwd = 2)
-lines(vb_seq, TAC_h_pred, col = "darkorchid3", lwd = 2)
+abline(v = lrp_h, col = "darkorchid3", lty = 3)
+abline(v = btrig_h, col = "darkorchid", lty = 3)
+lines(vb_seq_h, pred_h$Ut, col = "black", lwd = 2)
 
 # plot: time series of Ft, vb, yield
+par(mfrow = c(1, 1))
 years <- 920:999
 t_seq <- years - 919
+Ft_y <- obj_yield$report()$"Ft"
+Ft_h <- obj_hara$report()$"Ft"
 plot(t_seq, Ft_y[years],
   type = "l", col = "dodgerblue3", lwd = 2,
   ylim = c(0, max(Ft_y, Ft_h)), ylab = "Ft", xlab = "Year",
@@ -222,7 +232,6 @@ plot(t_seq, Ft_y[years],
 )
 lines(t_seq, Ft_h[years], col = "darkorchid3", lwd = 2, lty = 2)
 
-par(mfrow = c(1, 1))
 plot(t_seq, vb_y[years],
   type = "l", col = "dodgerblue3", lwd = 2,
   ylim = c(0, max(vb_y, vb_h)), ylab = "vb", xlab = "Year",
@@ -236,7 +245,6 @@ legend("topright",
 
 plot(t_seq, rep_yield$yield[years],
   type = "l", col = "dodgerblue3", lwd = 2,
-  ylim = c(0, max(rep_yield$yield, rep_hara$yield)),
   ylab = "Yield", xlab = "Year",
   main = "Yield through time"
 )
@@ -245,4 +253,3 @@ legend("topright",
   legend = c("Yield", "HARA"),
   col = c("dodgerblue3", "darkorchid3"), pch = c(16, 1), lty = 1, bty = "n"
 )
-
