@@ -18,15 +18,15 @@
 #
 # ln(R/S) is plotted to visualize recruits-per-spawner and the replacement line
 
-a <- 2.5
+ln_a <- 2.5
 b <- 0.01
 Sh <- c(10, 50, 200)
 col <- c("black", "dodgerblue3", "darkorange")
 s <- seq(0.01, 500, length.out = 300) # avoid zero for log scale
 
 ## helper functions
-ricker <- function(S, Sh) (S / (Sh + S)) * S * exp(a - b * S)
-bevholt <- function(S, Sh) ((S / (Sh + S)) * S * exp(a)) / (1 + b * S)
+ricker <- function(S, Sh) (S / (Sh + S)) * S * exp(ln_a - b * S)
+bevholt <- function(S, Sh) ((S / (Sh + S)) * S * exp(ln_a)) / (1 + b * S)
 
 ## matrices: rows = S, cols = different Sh values
 R_ricker <- sapply(Sh, ricker, S = s)
@@ -77,7 +77,7 @@ for (i in seq_along(Sh)) lines(s, lnRPS_bh[, i], col = col[i], lwd = 2)
 set.seed(123)
 
 ## true values -------------------------------------------------------------
-a_true <- 0.25 # ln-alpha
+ln_a_true <- 0.25 # ln-alpha
 b_true <- 0.01 # density dependence
 Sh_true <- 50 # half-saturation for survival term
 sigma <- 0.35 # sd of log error
@@ -86,29 +86,29 @@ n_obs <- 100 # observations per data set
 n_sim <- 1000 # monte-carlo replicates
 
 ## storage for mles --------------------------------------------------------
-a_hat <- numeric(n_sim)
+ln_a_hat <- numeric(n_sim)
 b_hat <- numeric(n_sim)
 Sh_hat <- numeric(n_sim)
 
 ## negative log-likelihood -------------------------------------------------
 nll <- function(par, S, R) {
-  a <- par[1]
+  ln_a <- par[1]
   b <- par[2]
   Sh <- exp(par[3]) # positivity with exp
   sd <- exp(par[4])
-  mu <- log(S) + log(S / (Sh + S)) + a - b * S
+  mu <- log(S) + log(S / (Sh + S)) + ln_a - b * S
   -sum(dnorm(log(R), mu, sd, log = TRUE))
 }
 
 ## monte-carlo loop --------------------------------------------------------
 for (k in 1:n_sim) {
   S <- runif(n_obs, 1, 500)
-  mu <- log(S) + log(S / (Sh_true + S)) + a_true - b_true * S
+  mu <- log(S) + log(S / (Sh_true + S)) + ln_a_true - b_true * S
   R <- exp(rnorm(n_obs, mu, sigma))
 
-  start <- c(a = 0, b = 0.005, ln_Sh = log(30), ln_sd = log(0.3))
+  start <- c(ln_a = 0, b = 0.005, ln_Sh = log(30), ln_sd = log(0.3))
   fit <- optim(start, nll, S = S, R = R, method = "BFGS")
-  a_hat[k] <- fit$par[1]
+  ln_a_hat[k] <- fit$par[1]
   b_hat[k] <- fit$par[2]
   Sh_hat[k] <- exp(fit$par[3])
 
@@ -118,11 +118,11 @@ for (k in 1:n_sim) {
 ## plots -------------------------------------------------------------------
 par(mfrow = c(1, 3), mar = c(4, 4, 3, 1))
 
-hist(a_hat,
+hist(ln_a_hat,
   breaks = 20, col = "gray85",
   main = expression("mle of a"), xlab = expression(hat(a))
 )
-abline(v = a_true, col = "dodgerblue3", lwd = 3, lty = 2)
+abline(v = ln_a_true, col = "dodgerblue3", lwd = 3, lty = 2)
 
 hist(b_hat,
   breaks = 20, col = "gray85",
