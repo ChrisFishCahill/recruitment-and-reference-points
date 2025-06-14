@@ -80,7 +80,7 @@ f <- function(par) {
     log_n[t + 1, 1] <- ln_alpha + log(ssb[t]) - br * ssb[t] + wt[t]
     if (t %% 100 == 0) {
       shock <- -10
-      log_n[t, ] <- log_n[t, ] + shock
+      log_n[t + 1, ] <- log_n[t + 1, ] + shock
     }
   }
   REPORT(Ut)
