@@ -1,12 +1,9 @@
-# Depensatory stock-recruit models using threshold survival formulation
-#
-# This script modifies the classic Ricker and Beverton-Holt models to include
-# depensation using a mechanistic survival term:
-#
-#   survival(S) = S / (h + S)
-#
-# where Sh is the spawning biomass at which survival is reduced by half.
-#
+# A depensatory stock recruitment model
+# h controls the strength and onset of depensation:
+# - It is the spawner biomass where survival drops to half its maximum
+# - Small h → depensation occurs only at very low abundance
+# - Large h → depensation affects a broader range of spawner levels
+
 # The modified recruitment equations are:
 #
 #   Ricker:         R(S) = [S / (h + S)] * S * exp(a - b * S)
