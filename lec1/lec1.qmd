@@ -138,11 +138,11 @@ $$
 ::: {style="font-size:25px"}
 -   The golden era of harvesting theory, driven by widespread development and use of computers
     -   Feedback policy design and the optimality of policies
-    -   Adaptive management (not just learning by doing but *true* AM)
-    -   The role of stochasticity and recruitment variation
+    -   True adaptive management (not just trial and error)
+    -   The role of stochasticity and recruitment variation 
     -   Effects of age structure
 -   Dynamic programming showed that for simple models, optimal management for yield was not a constant quota every year, but rather a *feedback policy* modulating mortality rate as population size changes
-    -   Difficult to implement, but very powerful. Like analytical methods, DP provides a *solution* rather than an *approximation*
+    -   Difficult to implement, but powerful. Like analytical methods, DP provides a *solution* rather than an *approximation*
     -   However, the 'big-n' problem limited applicability to many ecological settings
 -   Approximation in policy space and other optimization methods proved very powerful for more complicated models, but require explicit objectives
     -   These methods search for good policies that achieve some a priori objectives
@@ -175,7 +175,7 @@ text(escapement - 0.05*escapement, 0.08 * max(tac), "Lower limit \nreference poi
 
 ```
 
-[This is also called a 'fixed escapement' or 'bang-bang' policy; Walters 1975]{.footerRight}
+[This is also called a 'fixed escapement' policy; Walters 1975]{.footerRight}
 :::
 
 ## Themes from the Golden Era: risk-averse utility
@@ -216,7 +216,7 @@ abline(v = 3, col = "darkorchid2", lty = 2, lwd = 2)
 
 ::: {style="font-size:29px"}
 -   Benchmark values used to guide sustainable management
--   In their purest form, reference points are different aspects of a model (like the surplus production model we solved for MSY, Fmsy, and Bmsy) or emergent properties of dynamic programming or other analytical or numerical solutions (i.e., lower limit reference points)
+-   In their purest form, reference points are different aspects of a model (like the analytical solutions to the surplus production model) or emergent properties of dynamic programming or other analytical or numerical solutions (i.e., lower limit reference points)
 -   They depend on the model (surplus production MSY is not the same as age-structured model MSY)
 -   They depend on method (age-structured equilibrium Fmsy is not the same as age-structured simulation based Fmsy)
 -   Biological reference points, which are those linked specifically to the mathematics of a model, are determinable by an analyst in an objective way (i.e., Fmsy, Bmsy)
@@ -230,7 +230,8 @@ abline(v = 3, col = "darkorchid2", lty = 2, lwd = 2)
 ::: {style="font-size:29px"}
 -   Modern understanding of reference points is inextricably linked to feedback or harvest control
 -   Equilibrium and simulation based reference points are much simpler to compute than feedback policies
--   Feedback policies can maximize yield or risk-averse utility (or anything), are highly counter-intuitive, and very powerful
+-   Feedback policies can maximize yield or risk-averse utility (or anything) and very powerful
+    - Feedback policy remain state of the art for harvest management
 :::
 
 [Walters 1986; Hilborn and Walters 1992; Walters and Martell 2004]{.footerRight}
@@ -248,7 +249,7 @@ abline(v = 3, col = "darkorchid2", lty = 2, lwd = 2)
 
 ##  {.background background-image="images/dfo.png" background-size="contain"}
 
-[DFO Precautionary HCR; DFO 2009]{.footerRight}
+[An example of a "precautionary" harvest control rule; DFO 2009]{.footerRight}
 
 ## Communicating status: Kobe plots
 
@@ -340,11 +341,16 @@ text(1.6, 1.6, "Not overfished,\noverfishing", cex = 0.85)
 ## Summary
 
 ::: {style="font-size:30px"}
+
 -   Sustainability assessments typically require the determination of one or more reference points
+
 -   Feedback policies difficult to compute but very powerful and provide much of the theoretical foundation for sustainable harvesting in dynamic environments
--   There are many types of reference points, but biological reference points are aspects of models that analysts can identify objectively
+
+- Biological reference points are objective benchmarks derived from models, used to guide sustainable management decisions
+
 -   Many modern harvest control rules (i.e., feedback policies) such as those recommended by NOAA or DFO require these types of reference points as inputs
     -   Most of the class is about calculating these types of reference points
+
 -   Group discussion about harvest management practices in the Great Lakes region
 :::
 

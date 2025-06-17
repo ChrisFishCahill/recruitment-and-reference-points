@@ -3,7 +3,7 @@ subtitle: Feedback policy design
 author: Christopher L. Cahill <br> Associate Director
 ---
 
-## The Dark Arts of feedback policy design 
+## The Dark Arts of feedback policy design
 
 ![](images/dark.png){fig-align="center" width="1000" height="550"}
 
@@ -117,9 +117,7 @@ Feedback control (dynamic fishing policies), which has direct linkages to adapti
 
 -   These results often come from dynamic programming approaches, where the optimal action is derived by solving a recursive optimization problem. Many such solutions recommend adjusting harvest as a **simple function of biomass or abundance**\
     (e.g., Clark 1974; Clark and De Pree 1979; Mangel 1984; Moxnes 2002).
-
 :::
-
 
 ## Feedback policy design: the autopilot analogy
 
@@ -147,6 +145,11 @@ Feedback control (dynamic fishing policies), which has direct linkages to adapti
 -   Designing a "controller" for a nonlinear dynamical system.\
     → Beyond this point, logic starts to fray: many counter-intuitive results
 :::
+
+## A brief digression on objectives
+
+![](images/fish.jpeg){fig-align="center" width="1000" height="550"}
+
 
 ## On the need for explicit objectives
 
@@ -195,7 +198,7 @@ Feedback control (dynamic fishing policies), which has direct linkages to adapti
 
 <br>
 
--   Regardless of our individual thoughts on this objective, we can probably agree that this isn't your grandad's MSY and harvesting at rates above it is unwise
+-   Regardless of our individual thoughts on this objective, we can probably agree that harvesting at rates above this may be unwise in many circumstances
 :::
 
 ## HARA utility objective
@@ -320,20 +323,18 @@ abline(v = escapement, col = "dodgerblue3", lty = 2)
         -   time/area closures
         -   direct monitoring of exploitation rate through tagging studies
         -   good estimates of total abundance not necessarily required
-
-    - Assume that F to be implemented is without error, e.g. via effort controls with known catchability
+    -   Assume that F to be implemented is without error, e.g. via effort controls with known catchability
 
 -   There are many tactics for effective harvest regulation.
 
 [Walters and Martell 2004 section 3.3; see Chapter 4]{.footerRight}
 :::
 
-## Output vs. direct U control 
+## Output vs. direct U control
 
 ![](images/tactics.png){fig-align="center" width="1000" height="550"}
 
 [Input vs. output control. Walters and Martell 2004; Chapter 4]{.footerRight}
-
 
 ## Can output control go wrong?
 
@@ -453,8 +454,7 @@ abline(v = escapement, col = "dodgerblue3", lty = 2)
 -   Use **smooth approximations** (e.g. softplus) to ensure differentiability for compatibility with numerical optimization
 -   Recognize that the approach differs under:
     -   **Input control**: where $U_t$ is implemented and $\text{TAC}_t$ is implied
-    -   **Output control**: where $\text{TAC}_t$ is implemented and $U_t$ is implied
-[see also Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992]{.footerLeft}
+    -   **Output control**: where $\text{TAC}_t$ is implemented and $U_t$ is implied [see also Walters and Hilborn 1978; Walters 1986; Hilborn and Walters 1992]{.footerLeft}
 :::
 
 ## Approximation in policy space
@@ -495,28 +495,28 @@ abline(v = escapement, col = "dodgerblue3", lty = 2)
 ## Why smooth approximations?
 
 ::: {style="font-size:26px"}
+-   Harvest control rules often involve non-differentiable functions like $\max(0, x)$
 
-- Harvest control rules often involve non-differentiable functions like $\max(0, x)$ 
-- These create problems for automatic differentiation optimization
-- Smooth approximations (e.g. **softplus**) resolve this:
+-   These create problems for automatic differentiation optimization
 
-  $$
-  \max(0, x) \approx \frac{1}{\beta} \log(1 + e^{\beta x})
-  $$
+-   Smooth approximations (e.g. **softplus**) resolve this:
 
-- Benefits:
-  - Fully differentiable with respect to all parameters
-  - Retains shape of original function as $\beta \to \infty$
-  - Compatible with automatic differentiation tools (e.g. ADMB, TMB, RTMB)
-  
+    $$
+    \max(0, x) \approx \frac{1}{\beta} \log(1 + e^{\beta x})
+    $$
+
+-   Benefits:
+
+    -   Fully differentiable with respect to all parameters
+    -   Retains shape of original function as $\beta \to \infty$
+    -   Compatible with automatic differentiation tools (e.g. ADMB, TMB, RTMB)
+
 [*The road to enlightenment is sometimes differentiable.* Cahill, during a prolonged episode of HCR-induced despair.]{.footerRight}
-
 :::
 
 ## Smooth approximation of linear HCR
 
 ::: {style="font-size:26px"}
-
 **Linear control rule (on total catch):**
 
 $$
@@ -529,7 +529,7 @@ $$
 U_t = \frac{1}{\text{VB}_t} \cdot \max\left(0,\; c \cdot (\text{VB}_t - \text{LRP})\right)
 $$
 
----
+------------------------------------------------------------------------
 
 **Smooth approximation using softplus:**
 
@@ -539,14 +539,12 @@ $$
 
 Here, $c$ controls the slope, $\beta$ controls the smoothness, and $\text{LRP}$ is the lower reference point. $VB_t$ is the biomass vulnerable to fishing at time t. This form smoothly ramps up the catch rate as biomass exceeds LRP.
 
-When does this form assume harvest occurs? 
-
+When does this form assume harvest occurs?
 :::
 
 ## Ramped harvest control rule (HCR)
 
 ::: {style="font-size:26px"}
-
 We define a control rule with a ramp up to a capped exploitation rate:
 
 $$
@@ -564,18 +562,16 @@ $$
 c = \frac{u_{\text{cap}}}{B_{\text{trigger}} - \text{LRP}}
 $$
 
-- $VB_t$: observed vulnerable biomass  
-- $\text{LRP}$: lower reference point  
-- $B_{\text{trigger}}$: biomass where full exploitation begins  
-- $u_{\text{cap}}$: maximum exploitation rate  
-- $c$: slope of the ramp  
-
+-   $VB_t$: observed vulnerable biomass\
+-   $\text{LRP}$: lower reference point\
+-   $B_{\text{trigger}}$: biomass where full exploitation begins\
+-   $u_{\text{cap}}$: maximum exploitation rate\
+-   $c$: slope of the ramp
 :::
 
 ## Smooth approximation of ramped HCR
 
 ::: {style="font-size:26px"}
-
 **Step 1: smooth ramp-up from zero (softplus):**
 
 $$
@@ -602,45 +598,39 @@ This approximates:
 $$
 \min(u_{\text{cap}},\; soft_{ramp})
 $$
-
 :::
 
 ## Final exploitation rate and notes
 
 ::: {style="font-size:26px"}
-
 **Step 3: convert to fishing mortality**
 
 $$
 F_t = -\log(1 - U_t)
 $$
 
----
+------------------------------------------------------------------------
 
 **Notes:**
 
-- $\beta$ controls **smoothness** of transitions  
-   – higher $\beta$ → sharper transitions (closer to rectilinear form)  
-- This form is **differentiable** and works well in optimization  
-- If harvest occurs gradually over the year, apply to average biomass using Pope's approximation:  
-  $$ VB_t \cdot e^{-M/2} $$
-  
-[Pope's approximation: Hilborn and Walters 1992]{.footerRight}
+-   $\beta$ controls **smoothness** of transitions\
+    – higher $\beta$ → sharper transitions (closer to rectilinear form)\
+-   This form is **differentiable** and works well in optimization\
+-   If harvest occurs gradually over the year, apply to average biomass using Pope's approximation:\
+    $$ VB_t \cdot e^{-M/2} $$
 
+[Pope's approximation: Hilborn and Walters 1992]{.footerRight}
 :::
 
 ## Exercise
 
 ::: {style="font-size:26px"}
-
-- Play with input control scripts for linear and rectilinear harvest control rules
-- Explore how objective (yield vs. HARA) changes feedback policy shape
-- Where does the maximizing yield objective cap mortality?
-- What does the rectilinear rule do that the linear rule does not?
-- Does observation error change your answers? If so, how?
-
+-   Play with input control scripts for linear and rectilinear harvest control rules
+-   Explore how objective (yield vs. HARA) changes feedback policy shape
+-   Where does the maximizing yield objective cap mortality?
+-   What does the rectilinear rule do that the linear rule does not?
+-   Does observation error change your answers? If so, how?
 :::
-
 
 ## Thank you
 

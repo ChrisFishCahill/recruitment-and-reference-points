@@ -320,7 +320,7 @@ $$
 ## [Botsford's most useful trick]{style="font-size:80%"}
 
 ::: {style="font-size:28px"}
--   At any fished equilibrium, we can write the amount of spawner biomass generated on average as a function of the life history vectors weighted by the probability of surviving to each of those ages (i.e., as a function of F)
+-   At any fished equilibrium, we can write the amount of spawner biomass generated on average as a function of the life history vectors weighted by the probability of surviving to each of those ages (i.e., as a function of F):
 
 $$
 \mathrm{S = R \cdot sbrf}
@@ -483,9 +483,7 @@ $$
 ## Homework
 
 ::: {style="font-size:29px"}
-
-- Derive Ricker $\alpha$ and $\beta$ in terms of Ro, sbro, and recK following the methods in this presentation
-
+-   Derive Ricker $\alpha$ and $\beta$ in terms of Ro, sbro, and recK following the methods in this presentation
 :::
 
 ##  {.background background-image="images/danse.jpg" background-size="81%"}
