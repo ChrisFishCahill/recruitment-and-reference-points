@@ -57,6 +57,7 @@ for (i in seq_along(logF_seq)) {
   sbrf[i] <- res$sbrf
 }
 Fmsy <- exp(logF_seq[which.max(yield)])
+msy <- yield[which.max(yield)]
 
 par(mfrow = c(1, 2))
 plot(F_seq, yield, type = "l", xlab = "F", ylab = "Equilibrium yield", lwd = 2)
