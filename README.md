@@ -1,6 +1,6 @@
-## Course material for the Quantitative Fisheries Center's recruitment and reference points workshop
+# Course material for the Quantitative Fisheries Center's recruitment and reference points workshop
 
-This repository contains all scripts and lecture materials for **Cahill's sessions** on reference points and feedback control, part of the recruitment and reference point workshop held in **Duluth, Minnesota**, from **23–25 June 2025**.
+This repository contains all scripts and lecture materials for Cahill's portion of the course on reference points and feedback control held in **Duluth, Minnesota**, from **23–25 June 2025**. 
 
 # Fmsy folder
 
@@ -20,4 +20,4 @@ We did not explicitly cover the code in this folder during class, but it simulat
 
 # Extended Ricker folder
 
-This folder just contains another way to model environmental effects when using the Ricker stock-recruitment function.
+We also did not cover this code in class, but did discuss these topics. This folder just contains another way to model environmental effects when using the Ricker stock-recruitment function.
